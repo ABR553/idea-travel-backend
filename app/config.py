@@ -14,8 +14,19 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin"
     admin_secret: str = "change-me-in-production-very-secret-key"
+    port: int = 8000
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="after")
+    def _normalize_database_url(self) -> "Settings":
+        # Railway proporciona DATABASE_URL con prefijo postgresql://
+        # pero asyncpg necesita postgresql+asyncpg://
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace(
+                "postgresql://", "postgresql+asyncpg://", 1
+            )
+        return self
 
     @model_validator(mode="after")
     def _warn_insecure_admin(self) -> "Settings":

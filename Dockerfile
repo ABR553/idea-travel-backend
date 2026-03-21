@@ -9,4 +9,4 @@ CMD ["bash", "entrypoint.sh"]
 
 FROM base AS production
 COPY . .
-CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+CMD ["bash", "entrypoint.prod.sh"]
