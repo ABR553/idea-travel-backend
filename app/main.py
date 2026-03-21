@@ -1,15 +1,20 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+import sqladmin as _sqladmin
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.staticfiles import StaticFiles
 
 from app.admin.setup import setup_admin
 from app.api.v1.router import api_router
 from app.config import settings
 from app.database import engine
+
+SQLADMIN_STATICS = str(Path(_sqladmin.__file__).parent / "statics")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ideatravel")
@@ -65,6 +70,7 @@ app.add_middleware(
 
 app.include_router(api_router)
 
+app.mount("/admin/statics", StaticFiles(directory=SQLADMIN_STATICS), name="admin-statics")
 setup_admin(app)
 
 
