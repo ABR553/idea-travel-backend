@@ -1,0 +1,479 @@
+{
+  "info": {
+    "name": "Idea Travel API",
+    "description": "API REST para la plataforma de viajes **Idea Travel**.\n\n## Funcionalidades\n- **Packs de viaje**: CRUD completo con destinos, rutas dia a dia, alojamientos (budget/standard/premium) y experiencias con links de afiliados\n- **Productos Amazon**: catalogo de productos de viaje con links de afiliado\n- **Internacionalizacion**: soporte ES/EN via query param `?locale=es` o header `Accept-Language`\n\n## Cache\nTodas las respuestas GET incluyen `Cache-Control: public, s-maxage=3600` para ISR/SSG.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8100",
+      "type": "string"
+    },
+    {
+      "key": "locale",
+      "value": "es",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Verifica que la API y la base de datos estan operativas."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Packs",
+      "item": [
+        {
+          "name": "Listar packs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/packs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "packs"
+              ],
+              "query": [
+                {
+                  "key": "featured",
+                  "value": "",
+                  "description": "Featured",
+                  "disabled": true
+                },
+                {
+                  "key": "min_price",
+                  "value": "",
+                  "description": "Min Price",
+                  "disabled": true
+                },
+                {
+                  "key": "max_price",
+                  "value": "",
+                  "description": "Max Price",
+                  "disabled": true
+                },
+                {
+                  "key": "min_days",
+                  "value": "",
+                  "description": "Min Days",
+                  "disabled": true
+                },
+                {
+                  "key": "max_days",
+                  "value": "",
+                  "description": "Max Days",
+                  "disabled": true
+                },
+                {
+                  "key": "min_destinations",
+                  "value": "",
+                  "description": "Min Destinations",
+                  "disabled": true
+                },
+                {
+                  "key": "max_destinations",
+                  "value": "",
+                  "description": "Max Destinations",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "",
+                  "description": "Sort By",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page",
+                  "disabled": true
+                },
+                {
+                  "key": "page_size",
+                  "value": "",
+                  "description": "Page Size",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Devuelve packs de viaje con paginacion. Filtrable por featured, precio, duracion, numero de destinos. Buscador por titulo y descripcion. Ordenable por precio o duracion."
+          },
+          "response": []
+        },
+        {
+          "name": "Packs destacados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/packs/featured",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "packs",
+                "featured"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Devuelve solo los packs con featured=true."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de pack",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/packs/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "packs",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve un pack completo con destinos, alojamientos, experiencias y ruta dia a dia."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Listar productos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Category",
+                  "disabled": true
+                },
+                {
+                  "key": "min_price",
+                  "value": "",
+                  "description": "Min Price",
+                  "disabled": true
+                },
+                {
+                  "key": "max_price",
+                  "value": "",
+                  "description": "Max Price",
+                  "disabled": true
+                },
+                {
+                  "key": "min_rating",
+                  "value": "",
+                  "description": "Min Rating",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "",
+                  "description": "Sort By",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page",
+                  "disabled": true
+                },
+                {
+                  "key": "page_size",
+                  "value": "",
+                  "description": "Page Size",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Devuelve productos de viaje con paginacion. Filtrable por categoria, precio y rating. Buscador por nombre y descripcion. Ordenable por precio o rating."
+          },
+          "response": []
+        },
+        {
+          "name": "Categorias de productos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Devuelve las categorias disponibles de productos existentes en BD."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de producto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve un producto individual con traducciones segun locale."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clicks",
+      "item": [
+        {
+          "name": "Registrar click en accommodation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clicks/accommodations/:accommodation_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clicks",
+                "accommodations",
+                ":accommodation_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "accommodation_id",
+                  "description": "Accommodation Id"
+                }
+              ]
+            },
+            "description": "Registra que un usuario ha clicado en el link de reserva de un alojamiento."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar click en experience",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clicks/experiences/:experience_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clicks",
+                "experiences",
+                ":experience_id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "experience_id",
+                  "description": "Experience Id"
+                }
+              ]
+            },
+            "description": "Registra que un usuario ha clicado en el link de afiliado de una experiencia."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
