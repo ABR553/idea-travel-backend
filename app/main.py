@@ -39,7 +39,6 @@ TAGS_METADATA = [
 ]
 
 app = FastAPI(
-    root_path=settings.root_path,
     title="Idea Travel API",
     description=(
         "API REST para la plataforma de viajes **Idea Travel**.\n\n"

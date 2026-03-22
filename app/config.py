@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     admin_password: str = "admin"
     admin_secret: str = "change-me-in-production-very-secret-key"
     port: int = 8000
-    root_path: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
