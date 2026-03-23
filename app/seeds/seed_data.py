@@ -1,11 +1,13 @@
 """Seed data with real destinations, accommodations and experiences."""
 import asyncio
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 
 from app.database import async_session_factory
 from app.domain.models.accommodation import Accommodation, AccommodationTranslation
+from app.domain.models.blog_post import BlogPost, BlogPostTranslation
 from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
@@ -1120,6 +1122,342 @@ def _seed_products() -> list[Product]:
     return products
 
 
+def _seed_blog_posts() -> list[BlogPost]:
+    posts_data = [
+        {
+            "slug": "10-cosas-que-hacer-en-paris",
+            "cover_image": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200",
+            "category": "guia",
+            "published_at": datetime(2026, 3, 15, tzinfo=timezone.utc),
+            "title_es": "10 cosas que hacer en Paris que no te puedes perder",
+            "excerpt_es": "Paris es mucho mas que la Torre Eiffel. Descubre las experiencias imprescindibles para tu primer viaje a la Ciudad de la Luz.",
+            "content_es": """## 1. Subir a la Torre Eiffel al atardecer
+
+No es un cliche, es una experiencia que merece la pena. Reserva la subida para las ultimas horas de la tarde y veras como la ciudad se ilumina bajo tus pies. Consejo: compra las entradas con antelacion para evitar las colas.
+
+## 2. Perderte por Le Marais
+
+El barrio mas bohemio de Paris. Galerias de arte, tiendas vintage, falafels en Rue des Rosiers y cafes con encanto en cada esquina. Dejate llevar sin mapa.
+
+## 3. Visitar el Louvre (con estrategia)
+
+El museo es inmenso. No intentes verlo todo en un dia. Elige 2-3 salas que te interesen y disfruta sin prisas. La Mona Lisa esta siempre abarrotada; las salas de escultura griega son igual de impresionantes y mucho mas tranquilas.
+
+## 4. Crucero por el Sena
+
+Una de las mejores formas de ver los monumentos de Paris. Los Bateaux Mouches salen cada 30 minutos desde el Pont de l'Alma. Al atardecer es magico.
+
+## 5. Montmartre y el Sacre-Coeur
+
+Sube las escaleras (o toma el funicular) hasta la basilica y disfruta de las mejores vistas de Paris. Luego baja por las callejuelas de Montmartre, donde Picasso y Toulouse-Lautrec encontraron inspiracion.
+
+## 6. Comer croissants en una boulangerie local
+
+Olvida las cadenas. Busca una boulangerie de barrio y pide un croissant au beurre recien hecho. La diferencia es abismal. Recomendacion: Du Pain et des Idees en el Canal Saint-Martin.
+
+## 7. Pasear por los jardines de Luxemburgo
+
+El parque favorito de los parisinos. Perfecto para descansar despues de una manana de museos. Lleva algo de comer y sientate junto al estanque.
+
+## 8. Explorar Saint-Germain-des-Pres
+
+El barrio literario por excelencia. Cafes historicos como Les Deux Magots, librerias de segunda mano y una atmosfera intelectual que se respira en cada calle.
+
+## 9. Ver Paris desde el Centre Pompidou
+
+Las escaleras mecanicas exteriores del Pompidou ofrecen vistas panoramicas gratuitas. Dentro, una de las mejores colecciones de arte contemporaneo del mundo.
+
+## 10. Cenar en un bistrot autentico
+
+Nada de restaurantes turisticos cerca de los monumentos. Busca un bistrot en el 11eme o el 5eme arrondissement. Precio medio: 25-35 EUR por persona con vino incluido.""",
+            "title_en": "10 things to do in Paris you can't miss",
+            "excerpt_en": "Paris is much more than the Eiffel Tower. Discover the must-have experiences for your first trip to the City of Light.",
+            "content_en": """## 1. Climb the Eiffel Tower at sunset
+
+It's not a cliche, it's an experience worth having. Book your visit for late afternoon and watch the city light up beneath you. Tip: buy tickets in advance to skip the queues.
+
+## 2. Get lost in Le Marais
+
+Paris' most bohemian neighborhood. Art galleries, vintage shops, falafels on Rue des Rosiers and charming cafes on every corner. Let yourself wander without a map.
+
+## 3. Visit the Louvre (with a strategy)
+
+The museum is huge. Don't try to see everything in one day. Pick 2-3 rooms that interest you and enjoy without rushing. The Mona Lisa is always crowded; the Greek sculpture rooms are equally impressive and much quieter.
+
+## 4. Seine river cruise
+
+One of the best ways to see Paris' monuments. Bateaux Mouches depart every 30 minutes from Pont de l'Alma. At sunset it's magical.
+
+## 5. Montmartre and Sacre-Coeur
+
+Climb the stairs (or take the funicular) to the basilica and enjoy the best views of Paris. Then wander down through Montmartre's alleyways, where Picasso and Toulouse-Lautrec found inspiration.
+
+## 6. Eat croissants at a local boulangerie
+
+Forget the chains. Find a neighborhood boulangerie and order a freshly made croissant au beurre. The difference is staggering. Recommendation: Du Pain et des Idees on Canal Saint-Martin.
+
+## 7. Stroll through Luxembourg Gardens
+
+The Parisians' favorite park. Perfect for resting after a morning of museums. Bring something to eat and sit by the pond.
+
+## 8. Explore Saint-Germain-des-Pres
+
+The literary quarter par excellence. Historic cafes like Les Deux Magots, second-hand bookshops and an intellectual atmosphere you can feel on every street.
+
+## 9. See Paris from Centre Pompidou
+
+The Pompidou's exterior escalators offer free panoramic views. Inside, one of the world's best contemporary art collections.
+
+## 10. Dine at an authentic bistrot
+
+Skip the tourist restaurants near monuments. Find a bistrot in the 11th or 5th arrondissement. Average price: 25-35 EUR per person with wine included.""",
+        },
+        {
+            "slug": "cuanto-cuesta-viajar-a-japon",
+            "cover_image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200",
+            "category": "presupuesto",
+            "published_at": datetime(2026, 3, 10, tzinfo=timezone.utc),
+            "title_es": "Cuanto cuesta viajar a Japon: presupuesto real para 2 semanas",
+            "excerpt_es": "Desglose completo de gastos para un viaje de 14 dias a Japon. Vuelos, alojamiento, transporte, comida y actividades con precios reales.",
+            "content_es": """## Presupuesto total estimado: 2.500 - 4.000 EUR por persona
+
+Japon tiene fama de caro, pero con planificacion se puede disfrutar sin arruinarse. Aqui va el desglose real basado en nuestra experiencia.
+
+## Vuelos: 600 - 900 EUR
+
+Desde Espana, los vuelos con escala suelen costar entre 600 y 900 EUR ida y vuelta. Aerolineas como Turkish Airlines, Qatar Airways o China Eastern ofrecen buenas opciones. Reserva con 2-3 meses de antelacion.
+
+## Alojamiento: 700 - 1.400 EUR (14 noches)
+
+- **Presupuesto bajo**: Hostels y capsule hotels (50-70 EUR/noche)
+- **Presupuesto medio**: Business hotels tipo Toyoko Inn o APA Hotel (70-100 EUR/noche)
+- **Presupuesto alto**: Ryokan tradicional o hoteles boutique (100-150+ EUR/noche)
+
+Recomendacion: combina 2-3 noches en ryokan con el resto en business hotels.
+
+## Transporte interno: 250 - 400 EUR
+
+El Japan Rail Pass (JR Pass) de 14 dias cuesta unos 380 EUR y es imprescindible si vas a moverte entre ciudades. Cubre trenes bala (shinkansen), trenes locales y algunos ferries.
+
+Para metro en Tokio y Osaka: tarjeta Suica o Pasmo recargable. Calcula unos 5-8 EUR/dia.
+
+## Comida: 350 - 700 EUR (14 dias)
+
+- **Desayuno**: Incluido en muchos hoteles o conbini (7-Eleven, Lawson) por 3-5 EUR
+- **Almuerzo**: Ramen, gyudon o curry por 7-10 EUR
+- **Cena**: Izakaya o restaurante local por 15-25 EUR
+
+La comida en Japon es increiblemente buena incluso en los sitios baratos. Un ramen de 8 EUR en Tokio puede ser la mejor comida de tu viaje.
+
+## Actividades: 200 - 400 EUR
+
+- Templos y santuarios: muchos son gratuitos, algunos cobran 3-5 EUR
+- Experiencias tipicas: ceremonia del te (25-40 EUR), onsen publico (5-10 EUR)
+- Excursiones: dia en Hakone (50 EUR con transporte), Nara (gratis con JR Pass)
+
+## Extras: 100 - 200 EUR
+
+- SIM/eSIM de datos: 30-50 EUR (14 dias)
+- Seguro de viaje: 50-80 EUR
+- Souvenirs y gastos varios: 50-100 EUR
+
+## Consejos para ahorrar
+
+1. **Come en konbinis**: Los 7-Eleven japoneses tienen comida excelente por 3-5 EUR
+2. **Usa el JR Pass al maximo**: Planifica tus trayectos largos para amortizarlo
+3. **Alojate fuera del centro**: Las estaciones del metro te conectan rapido y los precios bajan mucho
+4. **Visita templos gratuitos**: Fushimi Inari, Senso-ji y muchos mas no cobran entrada
+5. **Lleva efectivo**: Japon sigue siendo un pais de efectivo en muchos sitios""",
+            "title_en": "How much does it cost to travel to Japan: real budget for 2 weeks",
+            "excerpt_en": "Complete expense breakdown for a 14-day trip to Japan. Flights, accommodation, transport, food and activities with real prices.",
+            "content_en": """## Estimated total budget: 2,500 - 4,000 EUR per person
+
+Japan has a reputation for being expensive, but with planning you can enjoy it without breaking the bank. Here's the real breakdown based on our experience.
+
+## Flights: 600 - 900 EUR
+
+From Spain, flights with a stopover usually cost between 600 and 900 EUR round trip. Airlines like Turkish Airlines, Qatar Airways or China Eastern offer good options. Book 2-3 months in advance.
+
+## Accommodation: 700 - 1,400 EUR (14 nights)
+
+- **Low budget**: Hostels and capsule hotels (50-70 EUR/night)
+- **Mid budget**: Business hotels like Toyoko Inn or APA Hotel (70-100 EUR/night)
+- **High budget**: Traditional ryokan or boutique hotels (100-150+ EUR/night)
+
+Recommendation: combine 2-3 nights in a ryokan with the rest in business hotels.
+
+## Internal transport: 250 - 400 EUR
+
+The 14-day Japan Rail Pass (JR Pass) costs about 380 EUR and is essential if you're traveling between cities. It covers bullet trains (shinkansen), local trains and some ferries.
+
+For metro in Tokyo and Osaka: rechargeable Suica or Pasmo card. Budget about 5-8 EUR/day.
+
+## Food: 350 - 700 EUR (14 days)
+
+- **Breakfast**: Included in many hotels or conbini (7-Eleven, Lawson) for 3-5 EUR
+- **Lunch**: Ramen, gyudon or curry for 7-10 EUR
+- **Dinner**: Izakaya or local restaurant for 15-25 EUR
+
+Food in Japan is incredibly good even at cheap places. An 8 EUR ramen in Tokyo can be the best meal of your trip.
+
+## Activities: 200 - 400 EUR
+
+- Temples and shrines: many are free, some charge 3-5 EUR
+- Typical experiences: tea ceremony (25-40 EUR), public onsen (5-10 EUR)
+- Day trips: Hakone (50 EUR with transport), Nara (free with JR Pass)
+
+## Extras: 100 - 200 EUR
+
+- Data SIM/eSIM: 30-50 EUR (14 days)
+- Travel insurance: 50-80 EUR
+- Souvenirs and miscellaneous: 50-100 EUR
+
+## Tips for saving money
+
+1. **Eat at konbinis**: Japanese 7-Elevens have excellent food for 3-5 EUR
+2. **Maximize your JR Pass**: Plan long trips to get your money's worth
+3. **Stay outside the center**: Metro stations connect you quickly and prices drop significantly
+4. **Visit free temples**: Fushimi Inari, Senso-ji and many more are free
+5. **Carry cash**: Japan is still a cash country in many places""",
+        },
+        {
+            "slug": "mejor-epoca-para-visitar-fiordos-noruegos",
+            "cover_image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200",
+            "category": "consejos",
+            "published_at": datetime(2026, 3, 5, tzinfo=timezone.utc),
+            "title_es": "Mejor epoca para visitar los fiordos noruegos (y que evitar)",
+            "excerpt_es": "Guia mes a mes para planificar tu viaje a los fiordos. Clima, precios, horas de luz y que esperar en cada temporada.",
+            "content_es": """## La respuesta corta: junio a agosto
+
+Si quieres buen tiempo, dias largos y todas las rutas abiertas, el verano es tu mejor opcion. Pero cada temporada tiene su encanto.
+
+## Verano (junio - agosto): la temporada estrella
+
+- **Temperatura**: 15-25°C en los valles, mas frio en altitud
+- **Horas de luz**: 18-24 horas (sol de medianoche en el norte)
+- **Ventajas**: Todo abierto, carreteras accesibles, naturaleza en su maximo esplendor
+- **Desventajas**: Precios altos, turismo masivo en los spots mas famosos
+- **Precio medio alojamiento**: 120-200 EUR/noche
+
+Julio es el mes mas popular pero tambien el mas caro y concurrido. Junio ofrece casi las mismas condiciones con menos gente.
+
+## Primavera (abril - mayo): el despertar
+
+- **Temperatura**: 5-15°C
+- **Horas de luz**: 14-18 horas
+- **Ventajas**: Cascadas en su maximo caudal por el deshielo, precios mas bajos, poca gente
+- **Desventajas**: Algunas carreteras de montaria aun cerradas, tiempo impredecible
+- **Precio medio alojamiento**: 80-140 EUR/noche
+
+Mayo es un mes excelente si no te importa algo de frio. Las cascadas son espectaculares.
+
+## Otorio (septiembre - octubre): colores y tranquilidad
+
+- **Temperatura**: 5-15°C
+- **Horas de luz**: 10-14 horas
+- **Ventajas**: Colores otoniales, precios mas bajos, menos turistas, posibilidad de auroras boreales
+- **Desventajas**: Dias mas cortos, algunas actividades cierran
+- **Precio medio alojamiento**: 80-130 EUR/noche
+
+Septiembre es quizas el mejor mes en relacion calidad-precio. El paisaje es increible con los colores del otorio.
+
+## Invierno (noviembre - marzo): auroras boreales
+
+- **Temperatura**: -5 a 5°C
+- **Horas de luz**: 4-8 horas (noche polar en el norte)
+- **Ventajas**: Auroras boreales, paisajes nevados, precios bajos
+- **Desventajas**: Muchas carreteras cerradas, dias muy cortos, actividades limitadas
+- **Precio medio alojamiento**: 70-120 EUR/noche
+
+Solo recomendado si tu objetivo principal son las auroras boreales o deportes de invierno.
+
+## Nuestra recomendacion
+
+**Primera visita**: segunda quincena de junio. Buen tiempo, dias larguisimos, todo abierto y algo menos de gente que julio.
+
+**Con presupuesto ajustado**: septiembre. Precios mucho mas bajos, paisajes espectaculares y aun con buen tiempo.
+
+**Para aventureros**: febrero-marzo en Tromso o Lofoten para auroras boreales.""",
+            "title_en": "Best time to visit the Norwegian fjords (and what to avoid)",
+            "excerpt_en": "Month-by-month guide to plan your fjords trip. Weather, prices, daylight hours and what to expect in each season.",
+            "content_en": """## The short answer: June to August
+
+If you want good weather, long days and all routes open, summer is your best bet. But each season has its charm.
+
+## Summer (June - August): peak season
+
+- **Temperature**: 15-25°C in valleys, cooler at altitude
+- **Daylight hours**: 18-24 hours (midnight sun in the north)
+- **Pros**: Everything open, roads accessible, nature at its best
+- **Cons**: High prices, mass tourism at famous spots
+- **Average accommodation price**: 120-200 EUR/night
+
+July is the most popular month but also the most expensive and crowded. June offers almost the same conditions with fewer people.
+
+## Spring (April - May): the awakening
+
+- **Temperature**: 5-15°C
+- **Daylight hours**: 14-18 hours
+- **Pros**: Waterfalls at peak flow from snowmelt, lower prices, few people
+- **Cons**: Some mountain roads still closed, unpredictable weather
+- **Average accommodation price**: 80-140 EUR/night
+
+May is an excellent month if you don't mind some cold. The waterfalls are spectacular.
+
+## Autumn (September - October): colors and tranquility
+
+- **Temperature**: 5-15°C
+- **Daylight hours**: 10-14 hours
+- **Pros**: Autumn colors, lower prices, fewer tourists, northern lights possible
+- **Cons**: Shorter days, some activities close
+- **Average accommodation price**: 80-130 EUR/night
+
+September might be the best value-for-money month. The landscape is incredible with autumn colors.
+
+## Winter (November - March): northern lights
+
+- **Temperature**: -5 to 5°C
+- **Daylight hours**: 4-8 hours (polar night in the north)
+- **Pros**: Northern lights, snowy landscapes, low prices
+- **Cons**: Many roads closed, very short days, limited activities
+- **Average accommodation price**: 70-120 EUR/night
+
+Only recommended if your main goal is northern lights or winter sports.
+
+## Our recommendation
+
+**First visit**: second half of June. Good weather, very long days, everything open and slightly less crowded than July.
+
+**On a budget**: September. Much lower prices, spectacular scenery and still good weather.
+
+**For adventurers**: February-March in Tromso or Lofoten for northern lights.""",
+        },
+    ]
+
+    posts = []
+    for data in posts_data:
+        post_id = _id()
+        posts.append(BlogPost(
+            id=post_id,
+            slug=data["slug"],
+            cover_image=data["cover_image"],
+            category=data["category"],
+            published=True,
+            published_at=data["published_at"],
+            translations=[
+                BlogPostTranslation(
+                    id=_id(), blog_post_id=post_id, locale="es",
+                    title=data["title_es"], excerpt=data["excerpt_es"], content=data["content_es"],
+                ),
+                BlogPostTranslation(
+                    id=_id(), blog_post_id=post_id, locale="en",
+                    title=data["title_en"], excerpt=data["excerpt_en"], content=data["content_en"],
+                ),
+            ],
+        ))
+    return posts
+
+
 async def seed() -> None:
     async with async_session_factory() as session:
         result = await session.execute(select(func.count()).select_from(Pack))
@@ -1138,11 +1476,13 @@ async def seed() -> None:
             _pack_kenia(),
         ]
         products = _seed_products()
+        blog_posts = _seed_blog_posts()
 
         session.add_all(packs)
         session.add_all(products)
+        session.add_all(blog_posts)
         await session.commit()
-        print(f"Seeded {len(packs)} packs and {len(products)} products!")
+        print(f"Seeded {len(packs)} packs, {len(products)} products and {len(blog_posts)} blog posts!")
 
 
 if __name__ == "__main__":
