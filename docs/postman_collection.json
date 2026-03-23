@@ -399,6 +399,143 @@
       ]
     },
     {
+      "name": "Blog",
+      "item": [
+        {
+          "name": "Listar articulos del blog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Category",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page",
+                  "disabled": true
+                },
+                {
+                  "key": "page_size",
+                  "value": "",
+                  "description": "Page Size",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Devuelve articulos publicados con paginacion. Filtrable por categoria. Buscador por titulo y extracto."
+          },
+          "response": []
+        },
+        {
+          "name": "Categorias del blog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Devuelve las categorias con articulos publicados."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de articulo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve un articulo completo con contenido y traducciones segun locale."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Clicks",
       "item": [
         {
@@ -470,6 +607,40 @@
               ]
             },
             "description": "Registra que un usuario ha clicado en el link de afiliado de una experiencia."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Seed",
+      "item": [
+        {
+          "name": "Ejecutar seed de datos iniciales",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/seed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "seed"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Endpoint protegido con ADMIN_SECRET para poblar la BD."
           },
           "response": []
         }

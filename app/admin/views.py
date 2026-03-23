@@ -1,6 +1,7 @@
 from sqladmin import ModelView
 
 from app.domain.models.accommodation import Accommodation, AccommodationTranslation
+from app.domain.models.blog_post import BlogPost, BlogPostTranslation
 from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
@@ -147,6 +148,27 @@ class LinkClickAdmin(ModelView, model=LinkClick):
     can_delete = False
 
 
+class BlogPostAdmin(ModelView, model=BlogPost):
+    name = "Blog Post"
+    name_plural = "Blog Posts"
+    icon = "fa-solid fa-newspaper"
+    column_list = [BlogPost.id, BlogPost.slug, BlogPost.category, BlogPost.published, BlogPost.published_at, BlogPost.created_at]
+    column_searchable_list = [BlogPost.slug, BlogPost.category]
+    column_sortable_list = [BlogPost.slug, BlogPost.category, BlogPost.published, BlogPost.published_at, BlogPost.created_at]
+    column_default_sort = ("created_at", True)
+    page_size = 25
+
+
+class BlogPostTranslationAdmin(ModelView, model=BlogPostTranslation):
+    name = "Blog Post Translation"
+    name_plural = "Blog Post Translations"
+    icon = "fa-solid fa-language"
+    column_list = [BlogPostTranslation.id, BlogPostTranslation.blog_post_id, BlogPostTranslation.locale, BlogPostTranslation.title, BlogPostTranslation.excerpt]
+    column_searchable_list = [BlogPostTranslation.title, BlogPostTranslation.locale]
+    column_sortable_list = [BlogPostTranslation.locale, BlogPostTranslation.title]
+    page_size = 25
+
+
 ALL_VIEWS = [
     PackAdmin,
     PackTranslationAdmin,
@@ -160,5 +182,7 @@ ALL_VIEWS = [
     ExperienceTranslationAdmin,
     ProductAdmin,
     ProductTranslationAdmin,
+    BlogPostAdmin,
+    BlogPostTranslationAdmin,
     LinkClickAdmin,
 ]

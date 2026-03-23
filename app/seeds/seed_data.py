@@ -1485,5 +1485,19 @@ async def seed() -> None:
         print(f"Seeded {len(packs)} packs, {len(products)} products and {len(blog_posts)} blog posts!")
 
 
+async def seed_blog() -> None:
+    """Seed solo de blog posts, independiente del seed general."""
+    async with async_session_factory() as session:
+        result = await session.execute(select(func.count()).select_from(BlogPost))
+        if result.scalar() > 0:
+            print("Blog posts already seeded, skipping...")
+            return
+
+        blog_posts = _seed_blog_posts()
+        session.add_all(blog_posts)
+        await session.commit()
+        print(f"Seeded {len(blog_posts)} blog posts!")
+
+
 if __name__ == "__main__":
     asyncio.run(seed())
