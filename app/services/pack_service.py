@@ -4,12 +4,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.domain.models.accommodation import Accommodation
-from app.domain.models.destination import Destination
-from app.domain.models.experience import Experience
+from app.domain.models.accommodation import Accommodation, AccommodationTranslation
+from app.domain.models.destination import Destination, DestinationTranslation
+from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
-from app.domain.models.route_step import RouteStep
+from app.domain.models.route_step import RouteStep, RouteStepTranslation
 from app.schemas.accommodation import AccommodationResponse
+from app.schemas.ai_generate import AIPack
 from app.schemas.common import PriceRange
 from app.schemas.destination import DestinationDetailResponse, DestinationResponse
 from app.schemas.experience import ExperienceResponse
@@ -291,3 +292,123 @@ async def get_featured_packs(
 ) -> list[PackListResponse]:
     items, _ = await get_packs(db, locale, featured=True, page=1, page_size=50)
     return items
+
+
+async def create_pack(db: AsyncSession, data: AIPack) -> Pack:
+    """Crea un pack completo con destinos, alojamientos, experiencias y ruta."""
+    pack_id = uuid.uuid4()
+    pack = Pack(
+        id=pack_id,
+        slug=data.slug,
+        cover_image=data.cover_image,
+        duration_days=data.duration_days,
+        price_from=data.price_from,
+        price_to=data.price_to,
+        price_currency="EUR",
+        featured=data.featured,
+        translations=[
+            PackTranslation(
+                id=uuid.uuid4(), pack_id=pack_id, locale="es",
+                title=data.title_es, description=data.description_es,
+                short_description=data.short_description_es, duration=data.duration_es,
+            ),
+            PackTranslation(
+                id=uuid.uuid4(), pack_id=pack_id, locale="en",
+                title=data.title_en, description=data.description_en,
+                short_description=data.short_description_en, duration=data.duration_en,
+            ),
+        ],
+    )
+
+    # Mapa nombre_es -> destination_id para vincular route steps
+    dest_name_to_id: dict[str, uuid.UUID] = {}
+
+    for order, ai_dest in enumerate(data.destinations):
+        dest_id = uuid.uuid4()
+        dest_name_to_id[ai_dest.name_es] = dest_id
+
+        accommodations = []
+        for ai_acc in ai_dest.accommodations:
+            acc_id = uuid.uuid4()
+            accommodations.append(Accommodation(
+                id=acc_id, destination_id=dest_id, tier=ai_acc.tier,
+                price_per_night=ai_acc.price_per_night, currency=ai_acc.currency,
+                image=ai_acc.image, amenities=ai_acc.amenities,
+                rating=ai_acc.rating, nights=ai_acc.nights,
+                translations=[
+                    AccommodationTranslation(
+                        id=uuid.uuid4(), accommodation_id=acc_id, locale="es",
+                        name=ai_acc.name_es, description=ai_acc.description_es,
+                    ),
+                    AccommodationTranslation(
+                        id=uuid.uuid4(), accommodation_id=acc_id, locale="en",
+                        name=ai_acc.name_en, description=ai_acc.description_en,
+                    ),
+                ],
+            ))
+
+        experiences = []
+        for ai_exp in ai_dest.experiences:
+            exp_id = uuid.uuid4()
+            experiences.append(Experience(
+                id=exp_id, destination_id=dest_id, provider=ai_exp.provider,
+                affiliate_url="#", price=ai_exp.price, currency=ai_exp.currency,
+                image=ai_exp.image, rating=ai_exp.rating,
+                translations=[
+                    ExperienceTranslation(
+                        id=uuid.uuid4(), experience_id=exp_id, locale="es",
+                        title=ai_exp.title_es, description=ai_exp.description_es,
+                        duration=ai_exp.duration_es,
+                    ),
+                    ExperienceTranslation(
+                        id=uuid.uuid4(), experience_id=exp_id, locale="en",
+                        title=ai_exp.title_en, description=ai_exp.description_en,
+                        duration=ai_exp.duration_en,
+                    ),
+                ],
+            ))
+
+        dest = Destination(
+            id=dest_id, pack_id=pack_id, image=ai_dest.image,
+            display_order=order, days=ai_dest.days,
+            translations=[
+                DestinationTranslation(
+                    id=uuid.uuid4(), destination_id=dest_id, locale="es",
+                    name=ai_dest.name_es, country=ai_dest.country_es,
+                    description=ai_dest.description_es,
+                ),
+                DestinationTranslation(
+                    id=uuid.uuid4(), destination_id=dest_id, locale="en",
+                    name=ai_dest.name_en, country=ai_dest.country_en,
+                    description=ai_dest.description_en,
+                ),
+            ],
+            accommodations=accommodations,
+            experiences=experiences,
+        )
+        pack.destinations.append(dest)
+
+    for ai_step in data.route_steps:
+        rs_id = uuid.uuid4()
+        dest_id = dest_name_to_id.get(ai_step.destination_name)
+        if not dest_id:
+            # Fallback al primer destino
+            dest_id = next(iter(dest_name_to_id.values()))
+        pack.route_steps.append(RouteStep(
+            id=rs_id, pack_id=pack_id, destination_id=dest_id, day=ai_step.day,
+            translations=[
+                RouteStepTranslation(
+                    id=uuid.uuid4(), route_step_id=rs_id, locale="es",
+                    title=ai_step.title_es, description=ai_step.description_es,
+                ),
+                RouteStepTranslation(
+                    id=uuid.uuid4(), route_step_id=rs_id, locale="en",
+                    title=ai_step.title_en, description=ai_step.description_en,
+                ),
+            ],
+        ))
+
+    db.add(pack)
+    await db.commit()
+    await db.refresh(pack)
+    return pack

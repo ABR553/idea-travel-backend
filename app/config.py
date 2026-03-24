@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin"
     admin_secret: str = "change-me-in-production-very-secret-key"
+    anthropic_api_key: str = "mock-key-replace-me"
     port: int = 8000
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
