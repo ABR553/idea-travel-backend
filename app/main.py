@@ -22,7 +22,7 @@ logger = logging.getLogger("ideatravel")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting Idea Travel API...")
+    logger.info("Starting Tengo Un Viaje API...")
     async with engine.begin() as conn:
         await conn.execute(text("SELECT 1"))
     logger.info("Database connection verified")
@@ -39,9 +39,9 @@ TAGS_METADATA = [
 ]
 
 app = FastAPI(
-    title="Idea Travel API",
+    title="Tengo Un Viaje API",
     description=(
-        "API REST para la plataforma de viajes **Idea Travel**.\n\n"
+        "API REST para la plataforma de viajes **Tengo Un Viaje**.\n\n"
         "## Funcionalidades\n"
         "- **Packs de viaje**: CRUD completo con destinos, rutas dia a dia, "
         "alojamientos (budget/standard/premium) y experiencias con links de afiliados\n"

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Idea Travel API",
-    "description": "API REST para la plataforma de viajes **Idea Travel**.\n\n## Funcionalidades\n- **Packs de viaje**: CRUD completo con destinos, rutas dia a dia, alojamientos (budget/standard/premium) y experiencias con links de afiliados\n- **Productos Amazon**: catalogo de productos de viaje con links de afiliado\n- **Internacionalizacion**: soporte ES/EN via query param `?locale=es` o header `Accept-Language`\n\n## Cache\nTodas las respuestas GET incluyen `Cache-Control: public, s-maxage=3600` para ISR/SSG.",
+    "name": "Tengo Un Viaje API",
+    "description": "API REST para la plataforma de viajes **Tengo Un Viaje**.\n\n## Funcionalidades\n- **Packs de viaje**: CRUD completo con destinos, rutas dia a dia, alojamientos (budget/standard/premium) y experiencias con links de afiliados\n- **Productos Amazon**: catalogo de productos de viaje con links de afiliado\n- **Internacionalizacion**: soporte ES/EN via query param `?locale=es` o header `Accept-Language`\n\n## Cache\nTodas las respuestas GET incluyen `Cache-Control: public, s-maxage=3600` para ISR/SSG.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -488,6 +488,245 @@
               "variable": []
             },
             "description": "Devuelve las categorias con articulos publicados."
+          },
+          "response": []
+        },
+        {
+          "name": "Seed de blog posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/seed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "seed"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Ejecuta seed de articulos del blog. Protegido con ADMIN_SECRET."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar todos los posts (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/admin/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "admin",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page",
+                  "disabled": true
+                },
+                {
+                  "key": "page_size",
+                  "value": "",
+                  "description": "Page Size",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Lista todos los posts incluyendo borradores. Protegido con ADMIN_SECRET."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de post (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "admin",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Obtiene un post por slug sin filtrar por published."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar articulo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "admin",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Actualiza un articulo existente. Protegido con ADMIN_SECRET."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar articulo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "admin",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Elimina un articulo del blog. Protegido con ADMIN_SECRET."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear articulo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/blog/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog",
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Crea un nuevo articulo del blog. Protegido con ADMIN_SECRET."
           },
           "response": []
         },
