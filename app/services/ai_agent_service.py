@@ -39,7 +39,7 @@ Reglas:
 _agent: Agent[None, AIGenerateResponse] = Agent(
     "anthropic:claude-sonnet-4-20250514",
     system_prompt=SYSTEM_PROMPT,
-    result_type=AIGenerateResponse,
+    output_type=AIGenerateResponse,
 )
 
 
