@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from starlette.staticfiles import StaticFiles
 
+from app.admin.routes import router as admin_api_router
 from app.admin.setup import setup_admin
 from app.api.v1.router import api_router
 from app.config import settings
@@ -68,6 +69,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(admin_api_router)
 
 app.mount("/admin/statics", StaticFiles(directory=SQLADMIN_STATICS), name="admin-statics")
 setup_admin(app)

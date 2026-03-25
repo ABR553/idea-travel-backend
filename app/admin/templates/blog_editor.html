@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Editor - Tengo Un Viaje Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+
+<!-- Nav -->
+<nav class="bg-white border-b border-neutral-200 px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-6">
+    <span class="text-lg font-bold">Tengo Un <span class="text-blue-600">Viaje</span> Admin</span>
+    <a href="/admin/blog-editor" class="text-sm text-blue-600 font-medium">Blog</a>
+    <a href="/admin/ai-generator" class="text-sm text-neutral-600 hover:text-blue-600 transition-colors">AI Generator</a>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="/admin" class="text-sm text-neutral-500 hover:text-neutral-700">Dashboard</a>
+    <a href="/" class="text-sm text-neutral-500 hover:text-neutral-700">Ver sitio</a>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- ==================== LIST VIEW ==================== -->
+  <div id="list-view">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">Blog Posts</h1>
+      <div class="flex gap-2">
+        <button onclick="seedBlog()" class="px-4 py-2 text-sm bg-amber-100 text-amber-800 rounded-md hover:bg-amber-200 transition-colors">Seed Blog</button>
+        <button onclick="showEdit()" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">+ Nuevo Post</button>
+      </div>
+    </div>
+    <div id="list-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
+    <div id="list-loading" class="text-neutral-500">Cargando...</div>
+    <div id="list-empty" class="hidden text-center py-12 text-neutral-500">
+      <p class="mb-2">No hay posts todavia.</p>
+      <p class="text-sm">Usa "Seed Blog" para cargar articulos de ejemplo o crea uno nuevo.</p>
+    </div>
+    <div id="list-table" class="hidden bg-white rounded-lg border border-neutral-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-neutral-50 border-b border-neutral-200">
+          <tr>
+            <th class="text-left px-4 py-3 font-medium text-neutral-600">Titulo</th>
+            <th class="text-left px-4 py-3 font-medium text-neutral-600">Slug</th>
+            <th class="text-left px-4 py-3 font-medium text-neutral-600">Categoria</th>
+            <th class="text-left px-4 py-3 font-medium text-neutral-600">Fecha</th>
+            <th class="text-right px-4 py-3 font-medium text-neutral-600">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="posts-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT VIEW ==================== -->
+  <div id="edit-view" class="hidden">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <button onclick="showList()" class="text-neutral-500 hover:text-neutral-700">&larr; Volver</button>
+        <h1 id="edit-title" class="text-2xl font-bold">Nuevo Post</h1>
+      </div>
+      <button onclick="savePost()" id="save-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium">Guardar</button>
+    </div>
+    <div id="edit-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
+
+    <!-- Campos generales -->
+    <div class="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
+      <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-4">Datos generales</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="f-slug" class="block text-sm font-medium text-neutral-700 mb-1">Slug</label>
+          <input id="f-slug" type="text" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="mi-articulo-de-viaje">
+        </div>
+        <div>
+          <label for="f-category" class="block text-sm font-medium text-neutral-700 mb-1">Categoria</label>
+          <select id="f-category" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <option value="guia">guia</option>
+            <option value="presupuesto">presupuesto</option>
+            <option value="epoca">epoca</option>
+            <option value="consejos">consejos</option>
+            <option value="lista">lista</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-cover" class="block text-sm font-medium text-neutral-700 mb-1">Imagen de portada (URL)</label>
+          <input id="f-cover" type="text" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div>
+          <label for="f-pack" class="block text-sm font-medium text-neutral-700 mb-1">Pack relacionado (slug)</label>
+          <input id="f-pack" type="text" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="paris-en-5-dias">
+        </div>
+        <div>
+          <label for="f-date" class="block text-sm font-medium text-neutral-700 mb-1">Fecha de publicacion</label>
+          <input id="f-date" type="date" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+        <div class="flex items-center pt-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="f-published" type="checkbox" class="w-4 h-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500">
+            <span class="text-sm font-medium text-neutral-700">Publicado</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido con tabs de idioma -->
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Contenido</h2>
+        <div class="flex gap-2">
+          <!-- Locale tabs -->
+          <div class="flex bg-neutral-100 rounded-md p-0.5">
+            <button onclick="setLocale('es')" id="tab-es" class="px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm">ES</button>
+            <button onclick="setLocale('en')" id="tab-en" class="px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700">EN</button>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label for="f-title" class="block text-sm font-medium text-neutral-700 mb-1">Titulo (<span id="locale-label-title">ES</span>)</label>
+          <input id="f-title" type="text" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Titulo del articulo">
+        </div>
+        <div>
+          <label for="f-excerpt" class="block text-sm font-medium text-neutral-700 mb-1">Extracto (<span id="locale-label-excerpt">ES</span>)</label>
+          <textarea id="f-excerpt" rows="2" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none" placeholder="Breve descripcion del articulo"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-1">Contenido (<span id="locale-label-content">ES</span>) - Markdown</label>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <textarea id="f-content" rows="24" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono resize-none" placeholder="Escribe el contenido en Markdown..."></textarea>
+            <div class="hidden lg:block border border-neutral-200 rounded-md p-4 bg-neutral-50 overflow-auto max-h-[600px]">
+              <div class="text-xs text-neutral-400 mb-2 uppercase tracking-wide">Vista previa</div>
+              <div id="md-preview" class="prose prose-sm max-w-none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = '/admin/api';
+const CATEGORIES = ['guia', 'presupuesto', 'epoca', 'consejos', 'lista'];
+
+// -- State --
+let posts = [];
+let editingSlug = null;
+let activeLocale = 'es';
+let translations = {
+  es: { title: '', excerpt: '', content: '' },
+  en: { title: '', excerpt: '', content: '' },
+};
+
+// -- API helpers --
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || 'Error ' + res.status);
+  }
+  return res.json();
+}
+
+// -- List --
+async function fetchPosts() {
+  show('list-loading'); hide('list-table'); hide('list-empty'); hide('list-error');
+  try {
+    const data = await api('/blog/list');
+    posts = data.data;
+    if (posts.length === 0) {
+      hide('list-loading'); show('list-empty');
+    } else {
+      renderTable();
+      hide('list-loading'); show('list-table');
+    }
+  } catch (e) {
+    hide('list-loading');
+    showError('list-error', e.message);
+  }
+}
+
+function renderTable() {
+  const tbody = document.getElementById('posts-body');
+  tbody.innerHTML = posts.map(p => `
+    <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+      <td class="px-4 py-3 font-medium">${esc(p.title || 'Sin titulo')}</td>
+      <td class="px-4 py-3 text-neutral-500 font-mono text-xs">${esc(p.slug)}</td>
+      <td class="px-4 py-3"><span class="inline-block px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">${esc(p.category)}</span></td>
+      <td class="px-4 py-3 text-neutral-500">${p.publishedAt || 'Borrador'}</td>
+      <td class="px-4 py-3 text-right">
+        <button onclick="showEdit('${esc(p.slug)}')" class="text-blue-600 hover:text-blue-800 mr-3">Editar</button>
+        <button onclick="deletePost('${esc(p.slug)}')" class="text-red-600 hover:text-red-800">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deletePost(slug) {
+  if (!confirm('Eliminar "' + slug + '"?')) return;
+  try {
+    await api('/blog/' + encodeURIComponent(slug), { method: 'DELETE' });
+    await fetchPosts();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function seedBlog() {
+  if (!confirm('Ejecutar seed de blog posts?')) return;
+  try {
+    await api('/blog/seed', { method: 'POST' });
+    await fetchPosts();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+// -- Edit --
+function showList() {
+  hide('edit-view'); show('list-view');
+  fetchPosts();
+}
+
+async function showEdit(slug) {
+  editingSlug = slug || null;
+  activeLocale = 'es';
+  translations = {
+    es: { title: '', excerpt: '', content: '' },
+    en: { title: '', excerpt: '', content: '' },
+  };
+
+  // Reset form
+  document.getElementById('f-slug').value = '';
+  document.getElementById('f-category').value = 'guia';
+  document.getElementById('f-cover').value = '';
+  document.getElementById('f-pack').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-published').checked = false;
+  document.getElementById('edit-title').textContent = slug ? 'Editar Post' : 'Nuevo Post';
+  hide('edit-error');
+
+  if (slug) {
+    // Cargar traducciones ES y EN
+    for (const locale of ['es', 'en']) {
+      try {
+        const data = await api('/blog/' + encodeURIComponent(slug) + '?locale=' + locale);
+        translations[locale] = { title: data.title, excerpt: data.excerpt, content: data.content };
+        if (locale === 'es') {
+          document.getElementById('f-slug').value = data.slug;
+          document.getElementById('f-category').value = data.category;
+          document.getElementById('f-cover').value = data.coverImage;
+          document.getElementById('f-pack').value = data.relatedPackSlug || '';
+          document.getElementById('f-date').value = data.publishedAt || '';
+          document.getElementById('f-published').checked = !!data.publishedAt;
+        }
+      } catch (e) {
+        translations[locale] = { title: '', excerpt: '', content: '' };
+      }
+    }
+  }
+
+  populateLocaleFields();
+  hide('list-view'); show('edit-view');
+}
+
+function setLocale(locale) {
+  // Guardar traducciones del locale actual antes de cambiar
+  saveCurrentLocaleFields();
+  activeLocale = locale;
+  populateLocaleFields();
+
+  // Actualizar tabs
+  document.getElementById('tab-es').className = locale === 'es'
+    ? 'px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+  document.getElementById('tab-en').className = locale === 'en'
+    ? 'px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+
+  const label = locale.toUpperCase();
+  document.getElementById('locale-label-title').textContent = label;
+  document.getElementById('locale-label-excerpt').textContent = label;
+  document.getElementById('locale-label-content').textContent = label;
+}
+
+function saveCurrentLocaleFields() {
+  translations[activeLocale] = {
+    title: document.getElementById('f-title').value,
+    excerpt: document.getElementById('f-excerpt').value,
+    content: document.getElementById('f-content').value,
+  };
+}
+
+function populateLocaleFields() {
+  const t = translations[activeLocale];
+  document.getElementById('f-title').value = t.title;
+  document.getElementById('f-excerpt').value = t.excerpt;
+  document.getElementById('f-content').value = t.content;
+  updatePreview();
+}
+
+async function savePost() {
+  saveCurrentLocaleFields();
+  const btn = document.getElementById('save-btn');
+  const slug = document.getElementById('f-slug').value.trim();
+  if (!slug) { showError('edit-error', 'El slug es obligatorio'); return; }
+
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  hide('edit-error');
+
+  const body = {
+    slug: slug,
+    coverImage: document.getElementById('f-cover').value,
+    category: document.getElementById('f-category').value,
+    published: document.getElementById('f-published').checked,
+    publishedAt: document.getElementById('f-date').value || null,
+    relatedPackSlug: document.getElementById('f-pack').value || null,
+    translations: ['es', 'en']
+      .filter(l => translations[l].title.trim())
+      .map(l => ({ locale: l, ...translations[l] })),
+  };
+
+  try {
+    if (editingSlug) {
+      await api('/blog/' + encodeURIComponent(editingSlug), { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      await api('/blog', { method: 'POST', body: JSON.stringify(body) });
+    }
+    showList();
+  } catch (e) {
+    showError('edit-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar';
+  }
+}
+
+// -- Markdown preview --
+function updatePreview() {
+  const content = document.getElementById('f-content').value;
+  document.getElementById('md-preview').innerHTML = markdownToHtml(content);
+}
+
+function markdownToHtml(md) {
+  if (!md) return '';
+  const lines = md.split('\n');
+  const parts = [];
+  let inList = false, listType = 'ul';
+
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { if (inList) { parts.push('</' + listType + '>'); inList = false; } continue; }
+
+    const hm = t.match(/^(#{1,6})\s+(.+)$/);
+    if (hm) {
+      if (inList) { parts.push('</' + listType + '>'); inList = false; }
+      parts.push('<h' + hm[1].length + '>' + inline(hm[2]) + '</h' + hm[1].length + '>');
+      continue;
+    }
+    if (/^[-*+]\s+/.test(t)) {
+      if (!inList || listType !== 'ul') { if (inList) parts.push('</' + listType + '>'); parts.push('<ul>'); inList = true; listType = 'ul'; }
+      parts.push('<li>' + inline(t.replace(/^[-*+]\s+/, '')) + '</li>');
+      continue;
+    }
+    const om = t.match(/^(\d+)\.\s+(.+)$/);
+    if (om) {
+      if (!inList || listType !== 'ol') { if (inList) parts.push('</' + listType + '>'); parts.push('<ol>'); inList = true; listType = 'ol'; }
+      parts.push('<li>' + inline(om[2]) + '</li>');
+      continue;
+    }
+    if (inList) { parts.push('</' + listType + '>'); inList = false; }
+    parts.push('<p>' + inline(t) + '</p>');
+  }
+  if (inList) parts.push('</' + listType + '>');
+  return parts.join('\n');
+}
+
+function inline(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline" target="_blank" rel="nofollow">$1</a>');
+}
+
+// -- DOM helpers --
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function showError(id, msg) { const el = document.getElementById(id); el.textContent = msg; show(id); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// -- Live markdown preview on typing --
+document.getElementById('f-content').addEventListener('input', updatePreview);
+
+// -- Init --
+fetchPosts();
+</script>
+</body>
+</html>

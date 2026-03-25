@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Generator - Tengo Un Viaje Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+
+<!-- Nav -->
+<nav class="bg-white border-b border-neutral-200 px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-6">
+    <span class="text-lg font-bold">Tengo Un <span class="text-blue-600">Viaje</span> Admin</span>
+    <a href="/admin/blog-editor" class="text-sm text-neutral-600 hover:text-blue-600 transition-colors">Blog</a>
+    <a href="/admin/ai-generator" class="text-sm text-blue-600 font-medium">AI Generator</a>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="/admin" class="text-sm text-neutral-500 hover:text-neutral-700">Dashboard</a>
+    <a href="/" class="text-sm text-neutral-500 hover:text-neutral-700">Ver sitio</a>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- ==================== INPUT VIEW ==================== -->
+  <div id="input-view">
+    <h1 class="text-2xl font-bold mb-6">AI Content Generator</h1>
+    <p class="text-neutral-600 mb-6">
+      Describe el viaje que quieres crear y la IA generara un pack completo con destinos,
+      alojamientos, experiencias, ruta dia a dia y un articulo de blog asociado.
+    </p>
+    <div id="input-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <label for="ai-desc" class="block text-sm font-medium text-neutral-700 mb-2">Descripcion del viaje</label>
+      <textarea id="ai-desc" rows="5" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+        placeholder="Ej: Un viaje de 7 dias por Japon visitando Tokio, Kioto y Osaka. Enfocado en cultura, templos y gastronomia japonesa. Presupuesto medio-alto."></textarea>
+      <div class="flex justify-end mt-4">
+        <button onclick="generate()" id="gen-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2">
+          Generar con IA
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PREVIEW VIEW ==================== -->
+  <div id="preview-view" class="hidden">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <button onclick="discard()" class="text-neutral-500 hover:text-neutral-700">&larr; Descartar</button>
+        <h1 class="text-2xl font-bold">Previsualizacion</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Locale toggle -->
+        <div class="flex bg-neutral-100 rounded-md p-0.5">
+          <button onclick="setPreviewLocale('es')" id="pv-tab-es" class="px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm">ES</button>
+          <button onclick="setPreviewLocale('en')" id="pv-tab-en" class="px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700">EN</button>
+        </div>
+        <button onclick="approve()" id="approve-btn" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+          Aprobar y Guardar
+        </button>
+      </div>
+    </div>
+    <div id="preview-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
+
+    <!-- Tabs: Pack / Blog -->
+    <div class="flex bg-neutral-100 rounded-md p-0.5 mb-6 w-fit">
+      <button onclick="setPreviewTab('pack')" id="pv-tab-pack" class="px-4 py-1.5 text-sm font-medium rounded transition-colors bg-white text-blue-600 shadow-sm">Pack</button>
+      <button onclick="setPreviewTab('blog')" id="pv-tab-blog" class="px-4 py-1.5 text-sm font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700">Blog</button>
+    </div>
+
+    <div id="preview-content"></div>
+  </div>
+
+  <!-- ==================== SUCCESS VIEW ==================== -->
+  <div id="success-view" class="hidden">
+    <h1 class="text-2xl font-bold mb-6">Contenido creado</h1>
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+      <div class="text-green-600 text-4xl mb-3">&#10003;</div>
+      <h2 class="text-lg font-semibold text-green-800 mb-2">Pack y blog creados correctamente</h2>
+      <p id="success-msg" class="text-green-700 mb-4"></p>
+      <div class="flex justify-center gap-3">
+        <button onclick="reset()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">Generar otro</button>
+        <a href="/admin/blog-editor" class="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md hover:bg-neutral-200 transition-colors text-sm font-medium">Ver Blog</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = '/admin/api';
+const TIER_LABELS = { budget: 'Budget', standard: 'Standard', premium: 'Premium' };
+const TIER_COLORS = { budget: 'bg-green-100 text-green-800', standard: 'bg-blue-100 text-blue-800', premium: 'bg-purple-100 text-purple-800' };
+
+let result = null;
+let previewLocale = 'es';
+let previewTab = 'pack';
+
+// -- API --
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || 'Error ' + res.status);
+  }
+  return res.json();
+}
+
+// -- Generate --
+async function generate() {
+  const desc = document.getElementById('ai-desc').value.trim();
+  if (desc.length < 10) { showError('input-error', 'La descripcion debe tener al menos 10 caracteres'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Generando...';
+  hide('input-error');
+
+  try {
+    result = await api('/ai/generate', { method: 'POST', body: JSON.stringify({ description: desc }) });
+    renderPreview();
+    hide('input-view'); show('preview-view');
+  } catch (e) {
+    showError('input-error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Generar con IA';
+  }
+}
+
+// -- Approve --
+async function approve() {
+  const btn = document.getElementById('approve-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Guardando...';
+  hide('preview-error');
+
+  try {
+    const res = await api('/ai/approve', { method: 'POST', body: JSON.stringify(result) });
+    document.getElementById('success-msg').innerHTML =
+      'El pack <span class="font-mono font-medium">' + esc(res.pack_slug) + '</span> y el blog <span class="font-mono font-medium">' + esc(res.blog_slug) + '</span> se han guardado en la base de datos.';
+    hide('preview-view'); show('success-view');
+  } catch (e) {
+    showError('preview-error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Aprobar y Guardar';
+  }
+}
+
+// -- Navigation --
+function discard() {
+  result = null;
+  hide('preview-view'); show('input-view');
+}
+
+function reset() {
+  result = null;
+  document.getElementById('ai-desc').value = '';
+  hide('success-view'); show('input-view');
+}
+
+function setPreviewLocale(l) {
+  previewLocale = l;
+  document.getElementById('pv-tab-es').className = l === 'es'
+    ? 'px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+  document.getElementById('pv-tab-en').className = l === 'en'
+    ? 'px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+  renderPreview();
+}
+
+function setPreviewTab(tab) {
+  previewTab = tab;
+  document.getElementById('pv-tab-pack').className = tab === 'pack'
+    ? 'px-4 py-1.5 text-sm font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-4 py-1.5 text-sm font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+  document.getElementById('pv-tab-blog').className = tab === 'blog'
+    ? 'px-4 py-1.5 text-sm font-medium rounded transition-colors bg-white text-blue-600 shadow-sm'
+    : 'px-4 py-1.5 text-sm font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700';
+  renderPreview();
+}
+
+// -- Render preview --
+function t(es, en) { return previewLocale === 'es' ? es : en; }
+
+function renderPreview() {
+  if (!result) return;
+  const el = document.getElementById('preview-content');
+  el.innerHTML = previewTab === 'pack' ? renderPack(result.pack) : renderBlog(result.blog);
+}
+
+function renderPack(pack) {
+  let html = `
+  <div class="space-y-6">
+    <!-- Pack header -->
+    <div class="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+      <div class="h-48 bg-neutral-200 relative">
+        <img src="${esc(pack.cover_image)}" alt="${esc(t(pack.title_es, pack.title_en))}" class="w-full h-full object-cover">
+        ${pack.featured ? '<span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded">FEATURED</span>' : ''}
+      </div>
+      <div class="p-6">
+        <div class="flex items-start justify-between mb-2">
+          <h2 class="text-xl font-bold">${esc(t(pack.title_es, pack.title_en))}</h2>
+          <span class="text-sm font-mono text-neutral-500">${esc(pack.slug)}</span>
+        </div>
+        <p class="text-neutral-600 mb-3">${esc(t(pack.description_es, pack.description_en))}</p>
+        <div class="flex flex-wrap gap-4 text-sm text-neutral-500">
+          <span>${esc(t(pack.duration_es, pack.duration_en))}</span>
+          <span>${pack.price_from} - ${pack.price_to} EUR</span>
+          <span>${pack.destinations.length} destino(s)</span>
+        </div>
+      </div>
+    </div>`;
+
+  // Destinations
+  for (const dest of pack.destinations) {
+    html += `
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-neutral-200">
+          <img src="${esc(dest.image)}" alt="${esc(t(dest.name_es, dest.name_en))}" class="w-full h-full object-cover">
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">${esc(t(dest.name_es, dest.name_en))}</h3>
+          <p class="text-sm text-neutral-500">${esc(t(dest.country_es, dest.country_en))} - ${dest.days} dia(s)</p>
+          <p class="text-sm text-neutral-600 mt-1">${esc(t(dest.description_es, dest.description_en))}</p>
+        </div>
+      </div>
+
+      <h4 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Alojamientos</h4>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        ${dest.accommodations.map(acc => `
+          <div class="border border-neutral-200 rounded-lg p-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full ${TIER_COLORS[acc.tier] || 'bg-neutral-100 text-neutral-800'}">${TIER_LABELS[acc.tier] || acc.tier}</span>
+              <span class="text-xs text-neutral-400">${acc.rating}/5</span>
+            </div>
+            <p class="font-medium text-sm">${esc(t(acc.name_es, acc.name_en))}</p>
+            <p class="text-xs text-neutral-500 mt-1">${esc(t(acc.description_es, acc.description_en))}</p>
+            <p class="text-sm font-semibold mt-2">${acc.price_per_night} ${esc(acc.currency)}/noche - ${acc.nights} noches</p>
+            <div class="flex flex-wrap gap-1 mt-2">
+              ${acc.amenities.map(a => '<span class="text-xs bg-neutral-100 text-neutral-600 px-1.5 py-0.5 rounded">' + esc(a) + '</span>').join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <h4 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Experiencias</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        ${dest.experiences.map(exp => `
+          <div class="border border-neutral-200 rounded-lg p-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">${esc(exp.provider)}</span>
+              <span class="text-xs text-neutral-400">${exp.rating}/5</span>
+            </div>
+            <p class="font-medium text-sm">${esc(t(exp.title_es, exp.title_en))}</p>
+            <p class="text-xs text-neutral-500 mt-1">${esc(t(exp.description_es, exp.description_en))}</p>
+            <div class="flex items-center gap-3 mt-2 text-sm">
+              <span class="font-semibold">${exp.price} ${esc(exp.currency)}</span>
+              <span class="text-neutral-400">${esc(t(exp.duration_es, exp.duration_en))}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Route steps
+  html += `
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <h3 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-4">Itinerario dia a dia</h3>
+      <div class="space-y-3">
+        ${pack.route_steps.map(step => `
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">${step.day}</div>
+            <div>
+              <h4 class="font-medium">${esc(t(step.title_es, step.title_en))}</h4>
+              <p class="text-sm text-neutral-600">${esc(t(step.description_es, step.description_en))}</p>
+              <p class="text-xs text-neutral-400 mt-1">${esc(step.destination_name)}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function renderBlog(blog) {
+  return `
+  <div class="space-y-6">
+    <div class="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+      <div class="h-48 bg-neutral-200">
+        <img src="${esc(blog.cover_image)}" alt="${esc(t(blog.title_es, blog.title_en))}" class="w-full h-full object-cover">
+      </div>
+      <div class="p-6">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="inline-block px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">${esc(blog.category)}</span>
+          <span class="text-xs font-mono text-neutral-400">${esc(blog.slug)}</span>
+        </div>
+        <h2 class="text-xl font-bold mb-2">${esc(t(blog.title_es, blog.title_en))}</h2>
+        <p class="text-neutral-600 italic">${esc(t(blog.excerpt_es, blog.excerpt_en))}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <h3 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-4">Contenido</h3>
+      <div class="prose prose-sm max-w-none">${markdownToHtml(t(blog.content_es, blog.content_en))}</div>
+    </div>
+  </div>`;
+}
+
+// -- Markdown --
+function markdownToHtml(md) {
+  if (!md) return '';
+  const lines = md.split('\n');
+  const parts = [];
+  let inList = false, listType = 'ul';
+
+  for (const line of lines) {
+    const tr = line.trim();
+    if (!tr) { if (inList) { parts.push('</' + listType + '>'); inList = false; } continue; }
+
+    const hm = tr.match(/^(#{1,6})\s+(.+)$/);
+    if (hm) {
+      if (inList) { parts.push('</' + listType + '>'); inList = false; }
+      parts.push('<h' + hm[1].length + '>' + inlineText(hm[2]) + '</h' + hm[1].length + '>');
+      continue;
+    }
+    if (/^[-*+]\s+/.test(tr)) {
+      if (!inList || listType !== 'ul') { if (inList) parts.push('</' + listType + '>'); parts.push('<ul>'); inList = true; listType = 'ul'; }
+      parts.push('<li>' + inlineText(tr.replace(/^[-*+]\s+/, '')) + '</li>');
+      continue;
+    }
+    const om = tr.match(/^(\d+)\.\s+(.+)$/);
+    if (om) {
+      if (!inList || listType !== 'ol') { if (inList) parts.push('</' + listType + '>'); parts.push('<ol>'); inList = true; listType = 'ol'; }
+      parts.push('<li>' + inlineText(om[2]) + '</li>');
+      continue;
+    }
+    if (inList) { parts.push('</' + listType + '>'); inList = false; }
+    parts.push('<p>' + inlineText(tr) + '</p>');
+  }
+  if (inList) parts.push('</' + listType + '>');
+  return parts.join('\n');
+}
+
+function inlineText(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline" target="_blank" rel="nofollow">$1</a>');
+}
+
+// -- DOM helpers --
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function showError(id, msg) { const el = document.getElementById(id); el.textContent = msg; show(id); }
+function esc(s) { if (s == null) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+</script>
+</body>
+</html>
