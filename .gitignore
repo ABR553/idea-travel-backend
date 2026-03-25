@@ -43,5 +43,9 @@ desktop.ini
 # Docker volumes
 postgres_data/
 
+# Generated content (keep dirs, ignore JSONs)
+generated/pending/*.json
+generated/approved/*.json
+
 # Claude Code
 .claude/

@@ -23,23 +23,35 @@
 
 <main class="max-w-7xl mx-auto px-6 py-8">
 
-  <!-- ==================== INPUT VIEW ==================== -->
-  <div id="input-view">
-    <h1 class="text-2xl font-bold mb-6">AI Content Generator</h1>
-    <p class="text-neutral-600 mb-6">
-      Describe el viaje que quieres crear y la IA generara un pack completo con destinos,
-      alojamientos, experiencias, ruta dia a dia y un articulo de blog asociado.
-    </p>
-    <div id="input-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
-    <div class="bg-white rounded-lg border border-neutral-200 p-6">
-      <label for="ai-desc" class="block text-sm font-medium text-neutral-700 mb-2">Descripcion del viaje</label>
-      <textarea id="ai-desc" rows="5" class="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
-        placeholder="Ej: Un viaje de 7 dias por Japon visitando Tokio, Kioto y Osaka. Enfocado en cultura, templos y gastronomia japonesa. Presupuesto medio-alto."></textarea>
-      <div class="flex justify-end mt-4">
-        <button onclick="generate()" id="gen-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2">
-          Generar con IA
-        </button>
+  <!-- ==================== LIST VIEW ==================== -->
+  <div id="list-view">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">AI Content Generator</h1>
+        <p class="text-neutral-500 text-sm mt-1">
+          Genera contenido con el CLI local de Claude y aprueba desde aqui.
+        </p>
       </div>
+      <button onclick="loadPending()" class="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md hover:bg-neutral-200 transition-colors text-sm font-medium">
+        Refrescar
+      </button>
+    </div>
+
+    <!-- Instrucciones CLI -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-semibold text-blue-800 mb-2">Como generar contenido</h3>
+      <p class="text-sm text-blue-700 mb-2">Ejecuta este comando desde la raiz del backend:</p>
+      <code class="block bg-blue-100 text-blue-900 px-3 py-2 rounded text-sm font-mono">
+        python scripts/generate_content.py "Descripcion del viaje..."
+      </code>
+      <p class="text-xs text-blue-600 mt-2">Requiere Claude CLI instalado y autenticado.</p>
+    </div>
+
+    <div id="list-error" class="hidden bg-red-50 text-red-700 p-3 rounded-md mb-4"></div>
+
+    <!-- Pending files list -->
+    <div id="pending-list" class="space-y-3">
+      <div class="text-center py-12 text-neutral-400">Cargando...</div>
     </div>
   </div>
 
@@ -47,8 +59,9 @@
   <div id="preview-view" class="hidden">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
-        <button onclick="discard()" class="text-neutral-500 hover:text-neutral-700">&larr; Descartar</button>
+        <button onclick="backToList()" class="text-neutral-500 hover:text-neutral-700">&larr; Volver</button>
         <h1 class="text-2xl font-bold">Previsualizacion</h1>
+        <span id="preview-filename" class="text-xs font-mono text-neutral-400"></span>
       </div>
       <div class="flex items-center gap-3">
         <!-- Locale toggle -->
@@ -56,7 +69,11 @@
           <button onclick="setPreviewLocale('es')" id="pv-tab-es" class="px-3 py-1 text-xs font-medium rounded transition-colors bg-white text-blue-600 shadow-sm">ES</button>
           <button onclick="setPreviewLocale('en')" id="pv-tab-en" class="px-3 py-1 text-xs font-medium rounded transition-colors text-neutral-500 hover:text-neutral-700">EN</button>
         </div>
-        <button onclick="approve()" id="approve-btn" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+        <!-- Target DB selector -->
+        <select id="target-db" class="px-3 py-2 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="dev">BD Desarrollo</option>
+        </select>
+        <button onclick="approveFile()" id="approve-btn" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium">
           Aprobar y Guardar
         </button>
       </div>
@@ -80,7 +97,7 @@
       <h2 class="text-lg font-semibold text-green-800 mb-2">Pack y blog creados correctamente</h2>
       <p id="success-msg" class="text-green-700 mb-4"></p>
       <div class="flex justify-center gap-3">
-        <button onclick="reset()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">Generar otro</button>
+        <button onclick="backToList(); loadPending();" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">Ver pendientes</button>
         <a href="/admin/blog-editor" class="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md hover:bg-neutral-200 transition-colors text-sm font-medium">Ver Blog</a>
       </div>
     </div>
@@ -93,9 +110,16 @@ const API = '/admin/api';
 const TIER_LABELS = { budget: 'Budget', standard: 'Standard', premium: 'Premium' };
 const TIER_COLORS = { budget: 'bg-green-100 text-green-800', standard: 'bg-blue-100 text-blue-800', premium: 'bg-purple-100 text-purple-800' };
 
+let currentFile = null;
 let result = null;
 let previewLocale = 'es';
 let previewTab = 'pack';
+
+// -- Init --
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  loadPending();
+});
 
 // -- API --
 async function api(path, opts = {}) {
@@ -110,40 +134,98 @@ async function api(path, opts = {}) {
   return res.json();
 }
 
-// -- Generate --
-async function generate() {
-  const desc = document.getElementById('ai-desc').value.trim();
-  if (desc.length < 10) { showError('input-error', 'La descripcion debe tener al menos 10 caracteres'); return; }
-
-  const btn = document.getElementById('gen-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Generando...';
-  hide('input-error');
-
+// -- Config --
+async function loadConfig() {
   try {
-    result = await api('/ai/generate', { method: 'POST', body: JSON.stringify({ description: desc }) });
-    renderPreview();
-    hide('input-view'); show('preview-view');
+    const config = await api('/ai/config');
+    const sel = document.getElementById('target-db');
+    if (config.has_prod_db) {
+      const opt = document.createElement('option');
+      opt.value = 'prod';
+      opt.textContent = 'BD Produccion';
+      sel.appendChild(opt);
+    }
   } catch (e) {
-    showError('input-error', e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = 'Generar con IA';
+    // Si falla, solo dev disponible
+  }
+}
+
+// -- List pending files --
+async function loadPending() {
+  const el = document.getElementById('pending-list');
+  try {
+    const res = await api('/ai/pending');
+    if (res.data.length === 0) {
+      el.innerHTML = `
+        <div class="text-center py-12">
+          <div class="text-neutral-400 text-4xl mb-3">&#128193;</div>
+          <p class="text-neutral-500">No hay archivos pendientes</p>
+          <p class="text-neutral-400 text-sm mt-1">Genera contenido con el CLI de Claude</p>
+        </div>`;
+      return;
+    }
+    el.innerHTML = res.data.map(item => `
+      <div class="bg-white rounded-lg border border-neutral-200 p-4 flex items-center justify-between hover:border-blue-300 transition-colors">
+        <div class="flex-1">
+          <div class="flex items-center gap-3">
+            <h3 class="font-semibold">${esc(item.pack_title)}</h3>
+            <span class="text-xs font-mono text-neutral-400">${esc(item.pack_slug)}</span>
+          </div>
+          <p class="text-sm text-neutral-500 mt-1">Blog: ${esc(item.blog_title)}</p>
+          <p class="text-xs text-neutral-400 mt-1">${esc(item.filename)}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="previewFile('${esc(item.filename)}')" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
+            Preview
+          </button>
+          <button onclick="deleteFile('${esc(item.filename)}')" class="px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors text-sm">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    showError('list-error', e.message);
+    el.innerHTML = '<div class="text-center py-12 text-red-400">Error cargando archivos</div>';
+  }
+}
+
+// -- Preview --
+async function previewFile(filename) {
+  try {
+    result = await api('/ai/pending/' + encodeURIComponent(filename));
+    currentFile = filename;
+    document.getElementById('preview-filename').textContent = filename;
+    renderPreview();
+    hide('list-view'); hide('success-view'); show('preview-view');
+  } catch (e) {
+    showError('list-error', e.message);
   }
 }
 
 // -- Approve --
-async function approve() {
+async function approveFile() {
+  if (!currentFile) return;
   const btn = document.getElementById('approve-btn');
+  const target = document.getElementById('target-db').value;
+  const targetLabel = target === 'prod' ? 'produccion' : 'desarrollo';
+
+  if (target === 'prod' && !confirm('Vas a guardar en la BD de PRODUCCION. Continuar?')) return;
+
   btn.disabled = true;
   btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Guardando...';
   hide('preview-error');
 
   try {
-    const res = await api('/ai/approve', { method: 'POST', body: JSON.stringify(result) });
+    const res = await api('/ai/approve/' + encodeURIComponent(currentFile), {
+      method: 'POST',
+      body: JSON.stringify({ target }),
+    });
     document.getElementById('success-msg').innerHTML =
-      'El pack <span class="font-mono font-medium">' + esc(res.pack_slug) + '</span> y el blog <span class="font-mono font-medium">' + esc(res.blog_slug) + '</span> se han guardado en la base de datos.';
+      'Pack <span class="font-mono font-medium">' + esc(res.pack_slug) + '</span> y blog <span class="font-mono font-medium">' + esc(res.blog_slug) + '</span> guardados en BD de ' + esc(targetLabel) + '.';
     hide('preview-view'); show('success-view');
+    currentFile = null;
+    result = null;
   } catch (e) {
     showError('preview-error', e.message);
   } finally {
@@ -152,16 +234,23 @@ async function approve() {
   }
 }
 
-// -- Navigation --
-function discard() {
-  result = null;
-  hide('preview-view'); show('input-view');
+// -- Delete --
+async function deleteFile(filename) {
+  if (!confirm('Eliminar ' + filename + '?')) return;
+  try {
+    await api('/ai/pending/' + encodeURIComponent(filename), { method: 'DELETE' });
+    loadPending();
+  } catch (e) {
+    showError('list-error', e.message);
+  }
 }
 
-function reset() {
+// -- Navigation --
+function backToList() {
+  currentFile = null;
   result = null;
-  document.getElementById('ai-desc').value = '';
-  hide('success-view'); show('input-view');
+  hide('preview-view'); hide('success-view'); show('list-view');
+  loadPending();
 }
 
 function setPreviewLocale(l) {
@@ -218,7 +307,6 @@ function renderPack(pack) {
       </div>
     </div>`;
 
-  // Destinations
   for (const dest of pack.destinations) {
     html += `
     <div class="bg-white rounded-lg border border-neutral-200 p-6">
@@ -271,7 +359,6 @@ function renderPack(pack) {
     </div>`;
   }
 
-  // Route steps
   html += `
     <div class="bg-white rounded-lg border border-neutral-200 p-6">
       <h3 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-4">Itinerario dia a dia</h3>
