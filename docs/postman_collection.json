@@ -492,245 +492,6 @@
           "response": []
         },
         {
-          "name": "Seed de blog posts",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/seed",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "seed"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "description": "Ejecuta seed de articulos del blog. Protegido con ADMIN_SECRET."
-          },
-          "response": []
-        },
-        {
-          "name": "Listar todos los posts (admin)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/admin/list",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "admin",
-                "list"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "",
-                  "description": "Page",
-                  "disabled": true
-                },
-                {
-                  "key": "page_size",
-                  "value": "",
-                  "description": "Page Size",
-                  "disabled": true
-                },
-                {
-                  "key": "locale",
-                  "value": "{{locale}}",
-                  "description": "Locale",
-                  "disabled": false
-                }
-              ],
-              "variable": []
-            },
-            "description": "Lista todos los posts incluyendo borradores. Protegido con ADMIN_SECRET."
-          },
-          "response": []
-        },
-        {
-          "name": "Detalle de post (admin)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "admin",
-                ":slug"
-              ],
-              "query": [
-                {
-                  "key": "locale",
-                  "value": "{{locale}}",
-                  "description": "Locale",
-                  "disabled": false
-                }
-              ],
-              "variable": [
-                {
-                  "key": "slug",
-                  "description": "Slug"
-                }
-              ]
-            },
-            "description": "Obtiene un post por slug sin filtrar por published."
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar articulo",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "admin",
-                ":slug"
-              ],
-              "query": [
-                {
-                  "key": "locale",
-                  "value": "{{locale}}",
-                  "description": "Locale",
-                  "disabled": false
-                }
-              ],
-              "variable": [
-                {
-                  "key": "slug",
-                  "description": "Slug"
-                }
-              ]
-            },
-            "description": "Actualiza un articulo existente. Protegido con ADMIN_SECRET."
-          },
-          "response": []
-        },
-        {
-          "name": "Eliminar articulo",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/admin/:slug",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "admin",
-                ":slug"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "key": "slug",
-                  "description": "Slug"
-                }
-              ]
-            },
-            "description": "Elimina un articulo del blog. Protegido con ADMIN_SECRET."
-          },
-          "response": []
-        },
-        {
-          "name": "Crear articulo",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept-Language",
-                "value": "{{locale}}",
-                "type": "text",
-                "disabled": true
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/blog/admin",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "blog",
-                "admin"
-              ],
-              "query": [
-                {
-                  "key": "locale",
-                  "value": "{{locale}}",
-                  "description": "Locale",
-                  "disabled": false
-                }
-              ],
-              "variable": []
-            },
-            "description": "Crea un nuevo articulo del blog. Protegido con ADMIN_SECRET."
-          },
-          "response": []
-        },
-        {
           "name": "Detalle de articulo",
           "request": {
             "method": "GET",
@@ -880,6 +641,265 @@
               "variable": []
             },
             "description": "Endpoint protegido con ADMIN_SECRET para poblar la BD."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin-api",
+      "item": [
+        {
+          "name": "Blog List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog",
+                "list"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Seed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog/seed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog",
+                "seed"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Get",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/blog/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "blog",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Ai Generate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/ai/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "ai",
+                "generate"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Ai Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/ai/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "ai",
+                "approve"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": ""
           },
           "response": []
         }
