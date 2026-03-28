@@ -1519,5 +1519,47 @@ async def seed_blog() -> None:
         print(f"Seeded {len(blog_posts)} blog posts!")
 
 
+async def seed_projects() -> None:
+    """Seed de proyectos e idempotente actualizacion de external_id en productos."""
+    from sqlalchemy import update as sa_update
+
+    async with async_session_factory() as session:
+        result = await session.execute(select(func.count()).select_from(Project))
+        if result.scalar() > 0:
+            print("Projects already seeded, skipping...")
+            return
+
+        projects = _seed_projects()
+        session.add_all(projects)
+        await session.flush()
+
+        # Asignar external_id y project_id a los productos existentes por slug
+        project_id = projects[0].id
+        product_external_ids: dict[str, str] = {
+            "maleta-samsonite-spinner-55": "B07EXAMPLE1",
+            "organizadores-equipaje-set-6": "B07EXAMPLE2",
+            "adaptador-universal-enchufe": "B07EXAMPLE3",
+            "powerbank-anker-20000": "B07EXAMPLE4",
+            "auriculares-sony-wh1000xm5": "B07EXAMPLE5",
+            "almohada-viaje-cervical": "B07EXAMPLE6",
+            "botella-agua-filtrante": "B07EXAMPLE7",
+            "gopro-hero-12": "B07EXAMPLE8",
+            "rinonera-antirrobo": "B07EXAMPLE9",
+            "kindle-paperwhite": "B07EXAMPLE10",
+            "tripode-viaje-compacto": "B07EXAMPLE11",
+            "mochila-cabina-40l": "B07EXAMPLE12",
+        }
+        from app.domain.models.product import Product as ProductModel
+        for slug, ext_id in product_external_ids.items():
+            await session.execute(
+                sa_update(ProductModel)
+                .where(ProductModel.slug == slug)
+                .values(external_id=ext_id, project_id=project_id)
+            )
+
+        await session.commit()
+        print(f"Seeded {len(projects)} projects and updated {len(product_external_ids)} products with external_id!")
+
+
 if __name__ == "__main__":
     asyncio.run(seed())
