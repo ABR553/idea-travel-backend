@@ -3,8 +3,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.domain.models.product import Product, ProductTranslation
+from app.domain.models.project import Project
 from app.schemas.product import ProductResponse
 from app.services.utils import resolve_translation, to_float
+
+
+def _build_link(product: Product) -> str | None:
+    """Construye el link de afiliado del proyecto sustituyendo external_id y tag_id."""
+    if not product.project or not product.external_id:
+        return None
+    return (
+        product.project.link_template
+        .replace("{external_id}", product.external_id)
+        .replace("{tag_id}", product.project.tag_id)
+    )
 
 
 def _product_to_response(product: Product, locale: str) -> ProductResponse:
@@ -20,6 +32,9 @@ def _product_to_response(product: Product, locale: str) -> ProductResponse:
         affiliate_url=product.affiliate_url,
         image=product.image,
         rating=to_float(product.rating),
+        external_id=product.external_id,
+        project_id=str(product.project_id) if product.project_id else None,
+        link=_build_link(product),
     )
 
 
@@ -71,7 +86,7 @@ async def get_products(
         ordered = ordered.order_by(Product.created_at.desc())
 
     query = (
-        ordered.options(selectinload(Product.translations))
+        ordered.options(selectinload(Product.translations), selectinload(Product.project))
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
@@ -94,7 +109,7 @@ async def get_product_by_slug(
     query = (
         select(Product)
         .where(Product.slug == slug)
-        .options(selectinload(Product.translations))
+        .options(selectinload(Product.translations), selectinload(Product.project))
     )
     result = await db.execute(query)
     product = result.scalars().unique().first()

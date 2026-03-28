@@ -37,6 +37,7 @@ TAGS_METADATA = [
     {"name": "health", "description": "Health check y estado del servicio"},
     {"name": "packs", "description": "Packs de viaje con destinos, alojamientos, experiencias y rutas"},
     {"name": "products", "description": "Productos de viaje de Amazon con links de afiliado"},
+    {"name": "projects", "description": "Proyectos que agrupan productos con su configuracion de links de afiliado"},
     {"name": "clicks", "description": "Registro de clicks en links de afiliados y reservas"},
 ]
 

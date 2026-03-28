@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -12,5 +14,8 @@ class ProductResponse(BaseModel):
     affiliateUrl: str = Field(alias="affiliate_url")
     image: str
     rating: float
+    external_id: Optional[str] = None
+    project_id: Optional[str] = None
+    link: Optional[str] = None
 
     model_config = {"populate_by_name": True}

@@ -6,6 +6,7 @@ from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
+from app.domain.models.project import Project
 from app.domain.models.link_click import LinkClick
 from app.domain.models.route_step import RouteStep, RouteStepTranslation
 
@@ -113,12 +114,23 @@ class ExperienceTranslationAdmin(ModelView, model=ExperienceTranslation):
     page_size = 25
 
 
+class ProjectAdmin(ModelView, model=Project):
+    name = "Project"
+    name_plural = "Projects"
+    icon = "fa-solid fa-folder-open"
+    column_list = [Project.id, Project.slug, Project.name, Project.tag_id, Project.link_template, Project.created_at]
+    column_searchable_list = [Project.slug, Project.name, Project.tag_id]
+    column_sortable_list = [Project.slug, Project.name, Project.created_at]
+    column_default_sort = ("created_at", True)
+    page_size = 25
+
+
 class ProductAdmin(ModelView, model=Product):
     name = "Product"
     name_plural = "Products"
     icon = "fa-solid fa-box"
-    column_list = [Product.id, Product.slug, Product.category, Product.price, Product.currency, Product.rating, Product.created_at]
-    column_searchable_list = [Product.slug, Product.category]
+    column_list = [Product.id, Product.slug, Product.category, Product.price, Product.currency, Product.rating, Product.external_id, Product.project_id, Product.created_at]
+    column_searchable_list = [Product.slug, Product.category, Product.external_id]
     column_sortable_list = [Product.slug, Product.category, Product.price, Product.rating, Product.created_at]
     column_default_sort = ("created_at", True)
     page_size = 25
@@ -180,6 +192,7 @@ ALL_VIEWS = [
     AccommodationTranslationAdmin,
     ExperienceAdmin,
     ExperienceTranslationAdmin,
+    ProjectAdmin,
     ProductAdmin,
     ProductTranslationAdmin,
     BlogPostAdmin,

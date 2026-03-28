@@ -6,6 +6,7 @@ from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.link_click import LinkClick
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
+from app.domain.models.project import Project
 from app.domain.models.route_step import RouteStep, RouteStepTranslation
 
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     "ExperienceTranslation",
     "Product",
     "ProductTranslation",
+    "Project",
     "LinkClick",
 ]

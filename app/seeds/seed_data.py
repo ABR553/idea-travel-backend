@@ -12,6 +12,7 @@ from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
+from app.domain.models.project import Project
 from app.domain.models.route_step import RouteStep, RouteStepTranslation
 
 
@@ -1067,53 +1068,70 @@ def _pack_kenia() -> Pack:
 
 
 # ──────────────────────────────────────────────────────────────────────
-# PRODUCTS (12, same as before)
+# PROJECTS
 # ──────────────────────────────────────────────────────────────────────
-def _seed_products() -> list[Product]:
+def _seed_projects() -> list[Project]:
+    return [
+        Project(
+            id=_id(),
+            slug="idea-travel",
+            name="Idea Travel",
+            tag_id="ideatravel-21",
+            link_template="https://www.amazon.es/dp/{external_id}?tag={tag_id}",
+        ),
+    ]
+
+
+# PRODUCTS (12, same as before but with external_id and project reference)
+# ──────────────────────────────────────────────────────────────────────
+def _seed_products(project_id: uuid.UUID) -> list[Product]:
+    # (slug, category, price, affiliate_url, image, rating, external_id,
+    #  name_es, desc_es, name_en, desc_en)
     data = [
-        ("maleta-samsonite-spinner-55", "luggage", 129.99, "https://www.amazon.es/dp/B07EXAMPLE1?tag=ideatravel-21", "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?w=800", 4.7,
+        ("maleta-samsonite-spinner-55", "luggage", 129.99, "https://www.amazon.es/dp/B07EXAMPLE1?tag=ideatravel-21", "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?w=800", 4.7, "B07EXAMPLE1",
          "Samsonite Spinner 55cm", "La maleta de cabina perfecta para viajeros frecuentes. Ultra ligera a solo 2.1kg con 4 ruedas y cierre TSA.",
          "Samsonite Spinner 55cm", "The perfect cabin suitcase for frequent travelers. Ultra-light at only 2.1kg with 4 wheels and TSA lock."),
-        ("organizadores-equipaje-set-6", "luggage", 19.99, "https://www.amazon.es/dp/B07EXAMPLE2?tag=ideatravel-21", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800", 4.5,
+        ("organizadores-equipaje-set-6", "luggage", 19.99, "https://www.amazon.es/dp/B07EXAMPLE2?tag=ideatravel-21", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800", 4.5, "B07EXAMPLE2",
          "Set 6 Organizadores de Equipaje", "Cubos de compresion de diferentes tamanos. Material resistente al agua y cremallera doble.",
          "6-Piece Packing Cube Set", "Compression cubes in different sizes. Water-resistant material with double zipper."),
-        ("adaptador-universal-enchufe", "electronics", 24.99, "https://www.amazon.es/dp/B07EXAMPLE3?tag=ideatravel-21", "https://images.unsplash.com/photo-1625465588028-458f59e19ee6?w=800", 4.6,
+        ("adaptador-universal-enchufe", "electronics", 24.99, "https://www.amazon.es/dp/B07EXAMPLE3?tag=ideatravel-21", "https://images.unsplash.com/photo-1625465588028-458f59e19ee6?w=800", 4.6, "B07EXAMPLE3",
          "Adaptador Universal con USB-C", "Un solo adaptador para mas de 150 paises. 3 puertos USB-A y 1 USB-C de carga rapida (30W).",
          "Universal Adapter with USB-C", "One adapter for over 150 countries. 3 USB-A ports and 1 USB-C fast charging (30W)."),
-        ("powerbank-anker-20000", "electronics", 39.99, "https://www.amazon.es/dp/B07EXAMPLE4?tag=ideatravel-21", "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800", 4.8,
+        ("powerbank-anker-20000", "electronics", 39.99, "https://www.amazon.es/dp/B07EXAMPLE4?tag=ideatravel-21", "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800", 4.8, "B07EXAMPLE4",
          "Anker PowerCore 20000mAh", "Bateria externa que carga tu movil hasta 5 veces. Puerto USB-C bidireccional. Permitida en avion.",
          "Anker PowerCore 20000mAh", "External battery that charges your phone up to 5 times. Bidirectional USB-C port. Airline approved."),
-        ("auriculares-sony-wh1000xm5", "electronics", 329.99, "https://www.amazon.es/dp/B07EXAMPLE5?tag=ideatravel-21", "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=800", 4.8,
+        ("auriculares-sony-wh1000xm5", "electronics", 329.99, "https://www.amazon.es/dp/B07EXAMPLE5?tag=ideatravel-21", "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=800", 4.8, "B07EXAMPLE5",
          "Sony WH-1000XM5", "Los mejores auriculares con cancelacion de ruido. Hasta 30h de bateria, perfectos para vuelos largos.",
          "Sony WH-1000XM5", "The best noise-cancelling headphones. Up to 30h battery, perfect for long flights."),
-        ("almohada-viaje-cervical", "comfort", 29.99, "https://www.amazon.es/dp/B07EXAMPLE6?tag=ideatravel-21", "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=800", 4.4,
+        ("almohada-viaje-cervical", "comfort", 29.99, "https://www.amazon.es/dp/B07EXAMPLE6?tag=ideatravel-21", "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=800", 4.4, "B07EXAMPLE6",
          "Almohada Cervical de Espuma Memoria", "Espuma viscoelastica que se comprime a un tercio. Funda lavable y transpirable.",
          "Memory Foam Neck Pillow", "Memory foam that compresses to a third. Washable and breathable cover."),
-        ("botella-agua-filtrante", "accessories", 44.99, "https://www.amazon.es/dp/B07EXAMPLE7?tag=ideatravel-21", "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800", 4.6,
+        ("botella-agua-filtrante", "accessories", 44.99, "https://www.amazon.es/dp/B07EXAMPLE7?tag=ideatravel-21", "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800", 4.6, "B07EXAMPLE7",
          "Botella con Filtro LifeStraw", "Filtra el 99.99% de bacterias y parasitos. Perfecta para trekking.",
          "LifeStraw Filter Bottle", "Filters 99.99% of bacteria and parasites. Perfect for trekking."),
-        ("gopro-hero-12", "photography", 399.99, "https://www.amazon.es/dp/B07EXAMPLE8?tag=ideatravel-21", "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800", 4.7,
+        ("gopro-hero-12", "photography", 399.99, "https://www.amazon.es/dp/B07EXAMPLE8?tag=ideatravel-21", "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800", 4.7, "B07EXAMPLE8",
          "GoPro HERO 12 Black", "Captura aventuras en 5.3K con HyperSmooth 6.0. Resistente al agua hasta 10m.",
          "GoPro HERO 12 Black", "Capture adventures in 5.3K with HyperSmooth 6.0. Waterproof up to 10m."),
-        ("rinonera-antirrobo", "accessories", 16.99, "https://www.amazon.es/dp/B07EXAMPLE9?tag=ideatravel-21", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800", 4.3,
+        ("rinonera-antirrobo", "accessories", 16.99, "https://www.amazon.es/dp/B07EXAMPLE9?tag=ideatravel-21", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800", 4.3, "B07EXAMPLE9",
          "Rinonera Antirrobo RFID", "Bloqueo RFID, compartimentos ocultos y material resistente a cortes.",
          "Anti-theft RFID Belt Bag", "RFID blocking, hidden compartments and cut-resistant material."),
-        ("kindle-paperwhite", "comfort", 149.99, "https://www.amazon.es/dp/B07EXAMPLE10?tag=ideatravel-21", "https://images.unsplash.com/photo-1532104041590-1046d1a28c64?w=800", 4.7,
+        ("kindle-paperwhite", "comfort", 149.99, "https://www.amazon.es/dp/B07EXAMPLE10?tag=ideatravel-21", "https://images.unsplash.com/photo-1532104041590-1046d1a28c64?w=800", 4.7, "B07EXAMPLE10",
          "Kindle Paperwhite 2024", "Miles de libros en 200 gramos. Pantalla antirreflejos, resistente al agua.",
          "Kindle Paperwhite 2024", "Thousands of books in 200 grams. Anti-glare screen, waterproof."),
-        ("tripode-viaje-compacto", "photography", 69.99, "https://www.amazon.es/dp/B07EXAMPLE11?tag=ideatravel-21", "https://images.unsplash.com/photo-1617575521317-d2974f3b56d2?w=800", 4.5,
+        ("tripode-viaje-compacto", "photography", 69.99, "https://www.amazon.es/dp/B07EXAMPLE11?tag=ideatravel-21", "https://images.unsplash.com/photo-1617575521317-d2974f3b56d2?w=800", 4.5, "B07EXAMPLE11",
          "Tripode de Viaje Manfrotto Compact", "Ultraligero (1.2kg), plegado 44cm. Compatible con movil y camara.",
          "Manfrotto Compact Travel Tripod", "Ultra-light (1.2kg), 44cm folded. Compatible with phone and camera."),
-        ("mochila-cabina-40l", "luggage", 89.99, "https://www.amazon.es/dp/B07EXAMPLE12?tag=ideatravel-21", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800", 4.6,
+        ("mochila-cabina-40l", "luggage", 89.99, "https://www.amazon.es/dp/B07EXAMPLE12?tag=ideatravel-21", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800", 4.6, "B07EXAMPLE12",
          "Mochila de Cabina 40L Osprey", "Medidas maximas de equipaje de mano. Apertura tipo maleta y compartimento para portatil.",
          "Osprey 40L Cabin Backpack", "Maximum carry-on dimensions. Suitcase-style opening and laptop compartment."),
     ]
     products = []
-    for slug, cat, price, url, img, rating, name_es, desc_es, name_en, desc_en in data:
+    for slug, cat, price, url, img, rating, ext_id, name_es, desc_es, name_en, desc_en in data:
         pid = _id()
         products.append(Product(
             id=pid, slug=slug, category=cat, price=price, currency="EUR",
             affiliate_url=url, image=img, rating=rating,
+            external_id=ext_id, project_id=project_id,
             translations=[
                 ProductTranslation(id=_id(), product_id=pid, locale="es", name=name_es, description=desc_es),
                 ProductTranslation(id=_id(), product_id=pid, locale="en", name=name_en, description=desc_en),
@@ -1475,14 +1493,16 @@ async def seed() -> None:
             _pack_noruega(),
             _pack_kenia(),
         ]
-        products = _seed_products()
+        projects = _seed_projects()
+        products = _seed_products(project_id=projects[0].id)
         blog_posts = _seed_blog_posts()
 
         session.add_all(packs)
+        session.add_all(projects)
         session.add_all(products)
         session.add_all(blog_posts)
         await session.commit()
-        print(f"Seeded {len(packs)} packs, {len(products)} products and {len(blog_posts)} blog posts!")
+        print(f"Seeded {len(packs)} packs, {len(projects)} projects, {len(products)} products and {len(blog_posts)} blog posts!")
 
 
 async def seed_blog() -> None:

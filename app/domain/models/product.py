@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -17,9 +18,16 @@ class Product(BaseModel):
     affiliate_url: Mapped[str] = mapped_column(String(500))
     image: Mapped[str] = mapped_column(String(500))
     rating: Mapped[float] = mapped_column(Numeric(2, 1))
+    external_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default=None)
+    project_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, default=None
+    )
 
     translations: Mapped[list["ProductTranslation"]] = relationship(
         back_populates="product", cascade="all, delete-orphan"
+    )
+    project: Mapped[Optional["Project"]] = relationship(  # type: ignore[name-defined]
+        back_populates="products"
     )
 
 
