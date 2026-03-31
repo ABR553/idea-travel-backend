@@ -13,6 +13,7 @@ class ProductResponse(BaseModel):
     currency: str
     affiliateUrl: str = Field(alias="affiliate_url")
     image: str
+    images: list[str] = []
     rating: float
     external_id: Optional[str] = None
     project_id: Optional[str] = None

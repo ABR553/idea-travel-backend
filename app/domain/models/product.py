@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -26,6 +26,9 @@ class Product(BaseModel):
     translations: Mapped[list["ProductTranslation"]] = relationship(
         back_populates="product", cascade="all, delete-orphan"
     )
+    images: Mapped[list["ProductImage"]] = relationship(
+        back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.position"
+    )
     project: Mapped[Optional["Project"]] = relationship(  # type: ignore[name-defined]
         back_populates="products"
     )
@@ -47,3 +50,15 @@ class ProductTranslation(BaseModel):
     description: Mapped[str] = mapped_column(String(2000))
 
     product: Mapped["Product"] = relationship(back_populates="translations")
+
+
+class ProductImage(BaseModel):
+    __tablename__ = "product_images"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE")
+    )
+    url: Mapped[str] = mapped_column(String(500))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+
+    product: Mapped["Product"] = relationship(back_populates="images")

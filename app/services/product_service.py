@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.domain.models.product import Product, ProductTranslation
+from app.domain.models.product import Product, ProductImage, ProductTranslation
 from app.domain.models.project import Project
 from app.schemas.product import ProductResponse
 from app.services.utils import resolve_translation, to_float
@@ -31,6 +31,7 @@ def _product_to_response(product: Product, locale: str) -> ProductResponse:
         currency=product.currency,
         affiliate_url=product.affiliate_url,
         image=product.image,
+        images=[img.url for img in sorted(product.images, key=lambda i: i.position)],
         rating=to_float(product.rating),
         external_id=product.external_id,
         project_id=str(product.project_id) if product.project_id else None,
@@ -86,7 +87,7 @@ async def get_products(
         ordered = ordered.order_by(Product.created_at.desc())
 
     query = (
-        ordered.options(selectinload(Product.translations), selectinload(Product.project))
+        ordered.options(selectinload(Product.translations), selectinload(Product.images), selectinload(Product.project))
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
@@ -109,7 +110,7 @@ async def get_product_by_slug(
     query = (
         select(Product)
         .where(Product.slug == slug)
-        .options(selectinload(Product.translations), selectinload(Product.project))
+        .options(selectinload(Product.translations), selectinload(Product.images), selectinload(Product.project))
     )
     result = await db.execute(query)
     product = result.scalars().unique().first()
