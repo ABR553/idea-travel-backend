@@ -399,6 +399,166 @@
       ]
     },
     {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Listar proyectos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Devuelve todos los proyectos disponibles."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de proyecto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/:slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve un proyecto por su slug."
+          },
+          "response": []
+        },
+        {
+          "name": "Productos de un proyecto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/:slug/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                ":slug",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Category",
+                  "disabled": true
+                },
+                {
+                  "key": "min_price",
+                  "value": "",
+                  "description": "Min Price",
+                  "disabled": true
+                },
+                {
+                  "key": "max_price",
+                  "value": "",
+                  "description": "Max Price",
+                  "disabled": true
+                },
+                {
+                  "key": "min_rating",
+                  "value": "",
+                  "description": "Min Rating",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "",
+                  "description": "Sort By",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page",
+                  "disabled": true
+                },
+                {
+                  "key": "page_size",
+                  "value": "",
+                  "description": "Page Size",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve los productos asociados a un proyecto con paginacion. Filtrable por categoria, precio y rating."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Blog",
       "item": [
         {
@@ -643,6 +803,35 @@
             "description": "Endpoint protegido con ADMIN_SECRET para poblar la BD."
           },
           "response": []
+        },
+        {
+          "name": "Seed de proyectos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/seed-projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "seed-projects"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Crea el proyecto idea-travel y asigna external_id a los productos existentes."
+          },
+          "response": []
         }
       ]
     },
@@ -844,9 +1033,9 @@
           "response": []
         },
         {
-          "name": "Ai Generate",
+          "name": "Ai List Pending",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Accept-Language",
@@ -856,7 +1045,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/api/ai/generate",
+              "raw": "{{base_url}}/admin/api/ai/pending",
               "host": [
                 "{{base_url}}"
               ],
@@ -864,12 +1053,84 @@
                 "admin",
                 "api",
                 "ai",
-                "generate"
+                "pending"
               ],
               "query": [],
               "variable": []
             },
-            "description": ""
+            "description": "Lista los archivos JSON pendientes de aprobacion."
+          },
+          "response": []
+        },
+        {
+          "name": "Ai Get Pending",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/ai/pending/:filename",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "ai",
+                "pending",
+                ":filename"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "filename",
+                  "description": "Filename"
+                }
+              ]
+            },
+            "description": "Lee un archivo JSON pendiente para previsualizacion."
+          },
+          "response": []
+        },
+        {
+          "name": "Ai Delete Pending",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/ai/pending/:filename",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "ai",
+                "pending",
+                ":filename"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "filename",
+                  "description": "Filename"
+                }
+              ]
+            },
+            "description": "Elimina un archivo JSON pendiente."
           },
           "response": []
         },
@@ -886,7 +1147,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/api/ai/approve",
+              "raw": "{{base_url}}/admin/api/ai/approve/:filename",
               "host": [
                 "{{base_url}}"
               ],
@@ -894,12 +1155,48 @@
                 "admin",
                 "api",
                 "ai",
-                "approve"
+                "approve",
+                ":filename"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "filename",
+                  "description": "Filename"
+                }
+              ]
+            },
+            "description": "Aprueba un JSON pendiente y lo guarda en la BD seleccionada (dev o prod)."
+          },
+          "response": []
+        },
+        {
+          "name": "Ai Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/api/ai/config",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "api",
+                "ai",
+                "config"
               ],
               "query": [],
               "variable": []
             },
-            "description": ""
+            "description": "Devuelve configuracion relevante para el admin UI."
           },
           "response": []
         }
