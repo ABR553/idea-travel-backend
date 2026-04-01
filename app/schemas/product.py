@@ -20,3 +20,32 @@ class ProductResponse(BaseModel):
     link: Optional[str] = None
 
     model_config = {"populate_by_name": True}
+
+
+class ProductTranslationInput(BaseModel):
+    locale: str
+    name: str
+    description: str
+
+
+class ProductUpsertItem(BaseModel):
+    external_id: str
+    slug: str
+    category: str
+    price: float
+    currency: str = "EUR"
+    affiliate_url: str
+    image: str
+    rating: float
+    images: list[str] = []
+    translations: list[ProductTranslationInput] = []
+
+
+class ProductBulkUpsertRequest(BaseModel):
+    items: list[ProductUpsertItem]
+
+
+class ProductBulkUpsertResponse(BaseModel):
+    created: int
+    updated: int
+    items: list[ProductResponse]

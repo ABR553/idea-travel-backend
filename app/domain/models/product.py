@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, Integer, Numeric, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,6 +10,15 @@ from app.domain.models.base import BaseModel
 
 class Product(BaseModel):
     __tablename__ = "products"
+    __table_args__ = (
+        Index(
+            "uq_product_project_external_id",
+            "project_id",
+            "external_id",
+            unique=True,
+            postgresql_where=text("project_id IS NOT NULL AND external_id IS NOT NULL"),
+        ),
+    )
 
     slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     category: Mapped[str] = mapped_column(String(20), index=True)

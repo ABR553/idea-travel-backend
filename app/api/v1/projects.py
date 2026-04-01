@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_locale
 from app.schemas.common import PaginatedResponse
-from app.schemas.product import ProductResponse
+from app.schemas.product import ProductBulkUpsertRequest, ProductBulkUpsertResponse, ProductResponse
 from app.schemas.project import ProjectResponse
-from app.services import project_service
+from app.services import product_service, project_service
 
 router = APIRouter()
 
@@ -90,3 +90,52 @@ async def list_project_products(
         "page": page,
         "page_size": page_size,
     }
+
+
+@router.post(
+    "/{slug}/products/upsert",
+    response_model=ProductBulkUpsertResponse,
+    summary="Upsert masivo de productos",
+    description=(
+        "Crea o actualiza productos en un proyecto usando (project_id, external_id) como clave. "
+        "Si el producto ya existe (mismo external_id en el proyecto) se actualiza; si no, se crea. "
+        "El slug nunca se modifica en actualizaciones. "
+        "Las traducciones se hacen upsert por locale; las no incluidas en el payload se dejan intactas."
+    ),
+    status_code=200,
+)
+async def bulk_upsert_project_products(
+    slug: str,
+    payload: ProductBulkUpsertRequest,
+    locale: str = Depends(get_locale),
+    db: AsyncSession = Depends(get_db),
+) -> ProductBulkUpsertResponse:
+    project = await project_service.get_project_model_by_slug(db, slug)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    result = await product_service.bulk_upsert_products(db, project, payload, locale)
+    await db.commit()
+    return result
+
+
+@router.delete(
+    "/{slug}/products",
+    summary="Eliminar productos de un proyecto",
+    description=(
+        "Elimina productos de un proyecto. "
+        "Si se pasan external_ids como query params, solo elimina esos productos. "
+        "Si no se pasan external_ids, elimina TODOS los productos del proyecto."
+    ),
+    status_code=200,
+)
+async def delete_project_products(
+    slug: str,
+    external_ids: list[str] | None = Query(None, description="external_ids a eliminar. Si se omite, se eliminan todos los productos del proyecto."),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    project = await project_service.get_project_model_by_slug(db, slug)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    deleted = await product_service.bulk_delete_products(db, project, external_ids)
+    await db.commit()
+    return {"deleted": deleted}

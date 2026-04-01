@@ -1,10 +1,12 @@
+import uuid
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.domain.models.product import Product, ProductImage, ProductTranslation
 from app.domain.models.project import Project
-from app.schemas.product import ProductResponse
+from app.schemas.product import ProductBulkUpsertRequest, ProductBulkUpsertResponse, ProductResponse
 from app.services.utils import resolve_translation, to_float
 
 
@@ -102,6 +104,134 @@ async def get_distinct_categories(db: AsyncSession) -> list[str]:
         select(Product.category).distinct().order_by(Product.category)
     )
     return [row[0] for row in result.all()]
+
+
+async def bulk_upsert_products(
+    db: AsyncSession,
+    project: Project,
+    payload: ProductBulkUpsertRequest,
+    locale: str,
+) -> ProductBulkUpsertResponse:
+    """Upsert masivo de productos usando (project_id, external_id) como clave."""
+    external_ids = [item.external_id for item in payload.items]
+
+    # Cargar los productos existentes de este proyecto con esos external_ids
+    existing_result = await db.execute(
+        select(Product)
+        .where(Product.project_id == project.id)
+        .where(Product.external_id.in_(external_ids))
+        .options(
+            selectinload(Product.translations),
+            selectinload(Product.images),
+            selectinload(Product.project),
+        )
+    )
+    existing_products: dict[str, Product] = {
+        p.external_id: p for p in existing_result.scalars().unique().all()
+        if p.external_id is not None
+    }
+
+    created_count = 0
+    updated_count = 0
+    result_products: list[Product] = []
+
+    for item in payload.items:
+        product = existing_products.get(item.external_id)
+
+        if product is None:
+            # INSERT
+            product = Product(
+                id=uuid.uuid4(),
+                slug=item.slug,
+                category=item.category,
+                price=item.price,
+                currency=item.currency,
+                affiliate_url=item.affiliate_url,
+                image=item.image,
+                rating=item.rating,
+                external_id=item.external_id,
+                project_id=project.id,
+            )
+            db.add(product)
+            created_count += 1
+        else:
+            # UPDATE — el slug no se modifica
+            product.category = item.category
+            product.price = item.price
+            product.currency = item.currency
+            product.affiliate_url = item.affiliate_url
+            product.image = item.image
+            product.rating = item.rating
+            updated_count += 1
+
+        # Upsert de imágenes: reemplazar lista completa
+        existing_image_urls = {img.url for img in product.images}
+        for position, url in enumerate(item.images):
+            if url not in existing_image_urls:
+                db.add(ProductImage(product_id=product.id, url=url, position=position))
+
+        # Upsert de traducciones: INSERT o UPDATE por locale
+        existing_translations: dict[str, ProductTranslation] = {
+            t.locale: t for t in product.translations
+        }
+        for trans_input in item.translations:
+            existing_t = existing_translations.get(trans_input.locale)
+            if existing_t is None:
+                db.add(ProductTranslation(
+                    product_id=product.id,
+                    locale=trans_input.locale,
+                    name=trans_input.name,
+                    description=trans_input.description,
+                ))
+            else:
+                existing_t.name = trans_input.name
+                existing_t.description = trans_input.description
+
+        result_products.append(product)
+
+    await db.flush()
+
+    # Recargar con todas las relaciones para serializar correctamente
+    reloaded_result = await db.execute(
+        select(Product)
+        .where(Product.project_id == project.id)
+        .where(Product.external_id.in_(external_ids))
+        .options(
+            selectinload(Product.translations),
+            selectinload(Product.images),
+            selectinload(Product.project),
+        )
+    )
+    reloaded: dict[str, Product] = {
+        p.external_id: p for p in reloaded_result.scalars().unique().all()
+        if p.external_id is not None
+    }
+    ordered_products = [reloaded[item.external_id] for item in payload.items if item.external_id in reloaded]
+
+    return ProductBulkUpsertResponse(
+        created=created_count,
+        updated=updated_count,
+        items=[_product_to_response(p, locale) for p in ordered_products],
+    )
+
+
+async def bulk_delete_products(
+    db: AsyncSession,
+    project: Project,
+    external_ids: list[str] | None,
+) -> int:
+    """Elimina productos de un proyecto. Si external_ids es None, elimina todos."""
+    base = select(Product).where(Product.project_id == project.id)
+    if external_ids is not None:
+        base = base.where(Product.external_id.in_(external_ids))
+
+    result = await db.execute(base)
+    products = result.scalars().unique().all()
+    count = len(products)
+    for product in products:
+        await db.delete(product)
+    await db.flush()
+    return count
 
 
 async def get_product_by_slug(

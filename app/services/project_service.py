@@ -32,6 +32,12 @@ async def get_project_by_slug(db: AsyncSession, slug: str) -> ProjectResponse | 
     return _project_to_response(project)
 
 
+async def get_project_model_by_slug(db: AsyncSession, slug: str) -> Project | None:
+    """Devuelve el modelo SQLAlchemy del proyecto (para operaciones de escritura)."""
+    result = await db.execute(select(Project).where(Project.slug == slug))
+    return result.scalars().unique().first()
+
+
 async def get_project_products(
     db: AsyncSession,
     project_slug: str,
