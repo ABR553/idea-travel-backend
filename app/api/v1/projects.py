@@ -45,6 +45,23 @@ async def get_project(
 
 
 @router.get(
+    "/{slug}/products/categories",
+    summary="Categorias de productos de un proyecto",
+    description="Devuelve las categorias distintas de los productos asociados a un proyecto.",
+)
+async def list_project_product_categories(
+    slug: str,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> list[str]:
+    categories = await project_service.get_project_categories(db, slug)
+    if categories is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    response.headers["Cache-Control"] = CACHE_HEADER
+    return categories
+
+
+@router.get(
     "/{slug}/products",
     response_model=PaginatedResponse[ProductResponse],
     summary="Productos de un proyecto",

@@ -38,6 +38,18 @@ async def get_project_model_by_slug(db: AsyncSession, slug: str) -> Project | No
     return result.scalars().unique().first()
 
 
+async def get_project_categories(db: AsyncSession, project_slug: str) -> list[str] | None:
+    """Devuelve las categorias distintas de los productos de un proyecto."""
+    project_result = await db.execute(select(Project).where(Project.slug == project_slug))
+    project = project_result.scalars().unique().first()
+    if not project:
+        return None
+    result = await db.execute(
+        select(Product.category).where(Product.project_id == project.id).distinct().order_by(Product.category)
+    )
+    return [row[0] for row in result.all()]
+
+
 async def get_project_products(
     db: AsyncSession,
     project_slug: str,
