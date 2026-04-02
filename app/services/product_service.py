@@ -53,7 +53,10 @@ async def get_products(
     page: int = 1,
     page_size: int = 10,
 ) -> tuple[list[ProductResponse], int]:
-    base = select(Product)
+    base = select(Product).where(
+        Product.external_id.isnot(None),
+        Product.external_id != "",
+    )
 
     if category:
         base = base.where(Product.category == category)

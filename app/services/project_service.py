@@ -59,7 +59,11 @@ async def get_project_products(
 
     from app.domain.models.product import ProductTranslation
 
-    base = select(Product).where(Product.project_id == project.id)
+    base = select(Product).where(
+        Product.project_id == project.id,
+        Product.external_id.isnot(None),
+        Product.external_id != "",
+    )
 
     if category:
         base = base.where(Product.category == category)
