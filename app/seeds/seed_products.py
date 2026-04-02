@@ -26,9 +26,12 @@ BASE_URL: str = os.getenv("BASE_URL", "https://api.tengounviaje.com").rstrip("/"
 PROJECT_SLUG: str = os.getenv("PROJECT_SLUG", "tengounviaje-21")
 BATCH_SIZE: int = int(os.getenv("BATCH_SIZE", "50"))
 
-_DEFAULT_JSON_PATH = (
-    Path(__file__).resolve().parents[4] / "amazon-scrapper" / "result_merged.json"
-)
+try:
+    _DEFAULT_JSON_PATH = (
+        Path(__file__).resolve().parents[4] / "amazon-scrapper" / "result_merged.json"
+    )
+except IndexError:
+    _DEFAULT_JSON_PATH = Path("/tmp/result_merged.json")
 JSON_PATH: Path = Path(os.getenv("JSON_PATH", str(_DEFAULT_JSON_PATH)))
 
 UPSERT_URL: str = f"{BASE_URL}/api/v1/projects/{PROJECT_SLUG}/products/upsert"
@@ -83,7 +86,7 @@ def build_item(asin: str, data: dict) -> dict | None:
                 },
             ],
         }
-    except (KeyError, ValueError, TypeError) as exc:
+    except (KeyError, ValueError, TypeError, AttributeError) as exc:
         print(f"  [WARN] Saltando {asin}: {exc}")
         return None
 
@@ -169,7 +172,10 @@ def main() -> None:
             total_created += created
             total_updated += updated
         except requests.HTTPError as exc:
-            print(f"\n[ERROR] HTTP {exc.response.status_code}: {exc.response.text[:300]}")
+            status = exc.response.status_code
+            print(f"\n[WARN] HTTP {status} en batch {idx}, saltando: {exc.response.text[:300]}")
+            if status == 500:
+                continue
             sys.exit(1)
         except requests.RequestException as exc:
             print(f"\n[ERROR] Conexión fallida: {exc}")
