@@ -99,7 +99,7 @@ async def get_project_products(
         ordered = ordered.order_by(Product.created_at.desc())
 
     query = (
-        ordered.options(selectinload(Product.translations), selectinload(Product.project))
+        ordered.options(selectinload(Product.translations), selectinload(Product.images), selectinload(Product.project))
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
