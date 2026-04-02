@@ -7,7 +7,7 @@ from app.domain.models.link_click import LinkClick
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
 from app.domain.models.project import Project
-from app.domain.models.route_step import RouteStep, RouteStepTranslation
+from app.domain.models.route_step import RouteStep, RouteStepProduct, RouteStepTranslation
 
 __all__ = [
     "BaseModel",
@@ -18,6 +18,7 @@ __all__ = [
     "Destination",
     "DestinationTranslation",
     "RouteStep",
+    "RouteStepProduct",
     "RouteStepTranslation",
     "Accommodation",
     "AccommodationTranslation",

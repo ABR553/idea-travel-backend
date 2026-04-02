@@ -8,14 +8,15 @@ from app.domain.models.accommodation import Accommodation, AccommodationTranslat
 from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
 from app.domain.models.pack import Pack, PackTranslation
-from app.domain.models.route_step import RouteStep, RouteStepTranslation
+from app.domain.models.product import Product
+from app.domain.models.route_step import RouteStep, RouteStepProduct, RouteStepTranslation
 from app.schemas.accommodation import AccommodationResponse
 from app.schemas.ai_generate import AIPack
 from app.schemas.common import PriceRange
 from app.schemas.destination import DestinationDetailResponse, DestinationResponse
 from app.schemas.experience import ExperienceResponse
 from app.schemas.pack import PackListResponse, PackResponse
-from app.schemas.route_step import RouteStepResponse
+from app.schemas.route_step import RecommendedProductResponse, RouteStepResponse
 from app.services import click_service
 from app.services.utils import resolve_translation, to_float
 
@@ -34,6 +35,10 @@ def _build_pack_options() -> list:
         selectinload(Pack.route_steps)
         .selectinload(RouteStep.destination)
         .selectinload(Destination.translations),
+        selectinload(Pack.route_steps)
+        .selectinload(RouteStep.recommended_products)
+        .joinedload(RouteStepProduct.product)
+        .selectinload(Product.translations),
     ]
 
 
@@ -118,11 +123,27 @@ def _build_route_step_response(
 ) -> RouteStepResponse:
     st = resolve_translation(step.translations, locale)
     dest_t = resolve_translation(step.destination.translations, locale)
+
+    recommended = []
+    for rsp in step.recommended_products:
+        pt = resolve_translation(rsp.product.translations, locale)
+        recommended.append(RecommendedProductResponse(
+            slug=rsp.product.slug,
+            name=pt.name if pt else "",
+            image=rsp.product.image,
+            price=to_float(rsp.product.price),
+            currency=rsp.product.currency,
+            affiliate_url=rsp.product.affiliate_url,
+            context_text=rsp.context_text,
+        ))
+
     return RouteStepResponse(
         day=step.day,
         title=st.title if st else "",
         description=st.description if st else "",
         destination=dest_t.name if dest_t else "",
+        detailed_description=st.detailed_description if st else None,
+        recommended_products=recommended,
     )
 
 

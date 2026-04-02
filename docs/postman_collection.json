@@ -466,6 +466,43 @@
           "response": []
         },
         {
+          "name": "Categorias de productos de un proyecto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/:slug/products/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                ":slug",
+                "products",
+                "categories"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Devuelve las categorias distintas de los productos asociados a un proyecto."
+          },
+          "response": []
+        },
+        {
           "name": "Productos de un proyecto",
           "request": {
             "method": "GET",
@@ -553,6 +590,93 @@
               ]
             },
             "description": "Devuelve los productos asociados a un proyecto con paginacion. Filtrable por categoria, precio y rating."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar productos de un proyecto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/:slug/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                ":slug",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "external_ids",
+                  "value": "",
+                  "description": "External Ids",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Elimina productos de un proyecto. Si se pasan external_ids como query params, solo elimina esos productos. Si no se pasan external_ids, elimina TODOS los productos del proyecto."
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert masivo de productos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/:slug/products/upsert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "projects",
+                ":slug",
+                "products",
+                "upsert"
+              ],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Locale",
+                  "disabled": false
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "description": "Slug"
+                }
+              ]
+            },
+            "description": "Crea o actualiza productos en un proyecto usando (project_id, external_id) como clave. Si el producto ya existe (mismo external_id en el proyecto) se actualiza; si no, se crea. El slug nunca se modifica en actualizaciones. Las traducciones se hacen upsert por locale; las no incluidas en el payload se dejan intactas."
           },
           "response": []
         }
@@ -830,6 +954,41 @@
               "variable": []
             },
             "description": "Crea el proyecto idea-travel y asigna external_id a los productos existentes."
+          },
+          "response": []
+        },
+        {
+          "name": "Enriquecer rutas de un pack con productos y descripciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "{{locale}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/seed-route-products/:pack_slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "seed-route-products",
+                ":pack_slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "pack_slug",
+                  "description": "Pack Slug"
+                }
+              ]
+            },
+            "description": "Asocia productos a route steps de un pack y actualiza detailed_description. Idempotente: reemplaza enlaces existentes."
           },
           "response": []
         }

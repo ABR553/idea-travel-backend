@@ -18,6 +18,7 @@ from app.domain.models import (  # noqa: F401
     Product,
     ProductTranslation,
     RouteStep,
+    RouteStepProduct,
     RouteStepTranslation,
 )
 from app.main import app
@@ -109,8 +110,16 @@ async def seeded_db(db_session):
     rs = RouteStep(
         id=rs_id, pack_id=pack_id, destination_id=dest_id, day=1,
         translations=[
-            RouteStepTranslation(id=_id(), route_step_id=rs_id, locale="es", title="Dia 1", description="Llegada"),
-            RouteStepTranslation(id=_id(), route_step_id=rs_id, locale="en", title="Day 1", description="Arrival"),
+            RouteStepTranslation(
+                id=_id(), route_step_id=rs_id, locale="es",
+                title="Dia 1", description="Llegada",
+                detailed_description="Texto detallado del dia 1.\n\nLleva unas [zapatillas](/tienda/test-product) comodas.\n\n> \U0001f4a1 **Tip:** Compra la tarjeta de transporte.",
+            ),
+            RouteStepTranslation(
+                id=_id(), route_step_id=rs_id, locale="en",
+                title="Day 1", description="Arrival",
+                detailed_description="Detailed text for day 1.\n\nBring some [sneakers](/tienda/test-product).\n\n> \U0001f4a1 **Tip:** Buy the transport card.",
+            ),
         ],
     )
     db_session.add_all([acc, exp, rs])
@@ -125,5 +134,11 @@ async def seeded_db(db_session):
         ],
     )
     db_session.add(product)
+
+    rsp = RouteStepProduct(
+        id=_id(), route_step_id=rs_id, product_id=prod_id,
+        position=0, context_text="Vas a caminar mucho",
+    )
+    db_session.add(rsp)
     await db_session.commit()
     return db_session

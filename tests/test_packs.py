@@ -75,3 +75,20 @@ async def test_pack_has_cache_headers(client, seeded_db):
     response = await client.get("/api/v1/packs/test-pack")
     assert "cache-control" in response.headers
     assert "s-maxage=3600" in response.headers["cache-control"]
+
+
+@pytest.mark.asyncio
+async def test_pack_route_step_has_enriched_fields(client, seeded_db):
+    response = await client.get("/api/v1/packs/test-pack")
+    assert response.status_code == 200
+    pack = response.json()
+    step = pack["route"][0]
+    assert step["detailed_description"] is not None
+    assert "/tienda/test-product" in step["detailed_description"]
+    assert len(step["recommended_products"]) == 1
+    product = step["recommended_products"][0]
+    assert product["slug"] == "test-product"
+    assert product["name"] == "Producto Test"
+    assert product["context_text"] == "Vas a caminar mucho"
+    assert product["price"] == 99.99
+    assert product["affiliate_url"] == "https://example.com/prod"
