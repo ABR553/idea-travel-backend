@@ -98,12 +98,17 @@ async def enrich_pack_routes(
             )
         )
 
-        # Create new product links
+        # Create new product links (skip duplicates)
+        seen_product_ids: set[str] = set()
         for pl in step_data.products:
             product = products_by_slug.get(pl.product_slug)
             if not product:
                 warnings.append(f"Product '{pl.product_slug}' not found")
                 continue
+            if str(product.id) in seen_product_ids:
+                warnings.append(f"Duplicate product '{pl.product_slug}' in day {step_data.day}, skipping")
+                continue
+            seen_product_ids.add(str(product.id))
             db.add(RouteStepProduct(
                 id=uuid.uuid4(),
                 route_step_id=route_step.id,

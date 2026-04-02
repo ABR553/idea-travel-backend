@@ -61,7 +61,9 @@ def discover_products(session: requests.Session) -> dict[str, str]:
     print(f"  Found {len(items)} products")
 
     # Build role → slug mapping
+    # Require BOTH category AND keyword match (on name/slug only, not description)
     role_to_slug: dict[str, str] = {}
+    used_slugs: set[str] = set()  # prevent same product mapped to multiple roles
 
     for role, (cats, keywords) in PRODUCT_ROLES.items():
         best_match: str | None = None
@@ -69,20 +71,18 @@ def discover_products(session: requests.Session) -> dict[str, str]:
             cat = (item.get("category") or "").lower()
             name = (item.get("name") or "").lower()
             slug = item.get("slug", "")
-            desc = (item.get("description") or "").lower()
-            searchable = f"{name} {slug} {desc}"
+            searchable = f"{name} {slug}"  # only name and slug, NOT description
 
             cat_match = any(c.lower() in cat for c in cats)
             kw_match = any(kw.lower() in searchable for kw in keywords)
 
-            if cat_match and kw_match:
+            if cat_match and kw_match and slug not in used_slugs:
                 best_match = slug
                 break
-            if kw_match and not best_match:
-                best_match = slug
 
         if best_match:
             role_to_slug[role] = best_match
+            used_slugs.add(best_match)
             print(f"  {role:15s} → {best_match[:60]}")
         else:
             print(f"  {role:15s} → NOT FOUND")
@@ -317,16 +317,20 @@ def main() -> None:
     # 2. Build pack data with resolved slugs
     all_packs = build_all_packs()
 
-    # Replace role keys with actual slugs in product lists
+    # Replace role keys with actual slugs, deduplicating per step
     for pack_slug, steps in all_packs.items():
         for s in steps:
             resolved: list[dict] = []
+            seen_slugs: set[str] = set()
             for p in s["products"]:
                 actual_slug = role_to_slug.get(p["product_slug"])
-                if actual_slug:
-                    resolved.append({**p, "product_slug": actual_slug})
-                else:
+                if not actual_slug:
                     print(f"  [WARN] Role '{p['product_slug']}' not mapped, skipping in {pack_slug} day {s['day']}")
+                elif actual_slug in seen_slugs:
+                    print(f"  [WARN] Duplicate slug '{actual_slug[:40]}' in {pack_slug} day {s['day']}, skipping")
+                else:
+                    seen_slugs.add(actual_slug)
+                    resolved.append({**p, "product_slug": actual_slug})
             s["products"] = resolved
 
     # 3. Send pack by pack
