@@ -8,7 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import Response as StarletteResponse
 from starlette.staticfiles import StaticFiles
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.admin.routes import router as admin_api_router
 from app.admin.setup import setup_admin
@@ -74,6 +76,31 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(admin_api_router)
+
+# --- MCP Server ---
+from app.mcp.server import mcp as mcp_server  # noqa: E402
+
+
+class _MCPAuthMiddleware:
+    """Raw ASGI middleware for MCP auth. Avoids BaseHTTPMiddleware which buffers SSE streams."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            secret = headers.get(b"x-admin-secret", b"").decode()
+            if secret != settings.admin_secret:
+                response = StarletteResponse(status_code=401, content="Unauthorized")
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
+mcp_app = mcp_server.sse_app()
+mcp_app.add_middleware(_MCPAuthMiddleware)
+app.mount("/mcp", mcp_app)
 
 app.mount("/admin/statics", StaticFiles(directory=SQLADMIN_STATICS), name="admin-statics")
 setup_admin(app)
