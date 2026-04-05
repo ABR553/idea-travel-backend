@@ -12,7 +12,14 @@ mcp = FastMCP(
     streamable_http_path="/",
     transport_security=TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
-        allowed_hosts=["localhost:*", "127.0.0.1:*", "api.tengounviaje.com:*"],
+        allowed_hosts=[
+            "localhost:*",
+            "127.0.0.1:*",
+            "api.tengounviaje.com",
+            "api.tengounviaje.com:*",
+            "*.railway.internal",
+            "*.railway.internal:*",
+        ],
         allowed_origins=["https://api.tengounviaje.com"],
     ),
 )
