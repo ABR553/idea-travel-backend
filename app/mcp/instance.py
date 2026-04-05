@@ -1,4 +1,5 @@
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 mcp = FastMCP(
     "idea-travel",
@@ -9,4 +10,9 @@ mcp = FastMCP(
         "Use list_projects first to get the project slug before upserting products."
     ),
     streamable_http_path="/",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=["localhost:*", "127.0.0.1:*", "api.tengounviaje.com:*"],
+        allowed_origins=["https://api.tengounviaje.com"],
+    ),
 )
