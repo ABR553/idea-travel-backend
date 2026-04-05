@@ -102,7 +102,7 @@ class _MCPAuthMiddleware:
         await self.app(scope, receive, send)
 
 
-mcp_app = mcp_server.streamable_http_app()
+mcp_app = mcp_server.streamable_http_app(streamable_http_path="/")
 mcp_app.add_middleware(_MCPAuthMiddleware)
 app.mount("/mcp", mcp_app)
 
