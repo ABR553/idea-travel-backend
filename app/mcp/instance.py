@@ -9,6 +9,7 @@ mcp = FastMCP(
         "All content supports bilingual translations (es/en). "
         "Use list_projects first to get the project slug before upserting products."
     ),
+    stateless_http=True,
     streamable_http_path="/",
     transport_security=TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
