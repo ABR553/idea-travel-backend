@@ -8,4 +8,5 @@ mcp = FastMCP(
         "All content supports bilingual translations (es/en). "
         "Use list_projects first to get the project slug before upserting products."
     ),
+    streamable_http_path="/",
 )
