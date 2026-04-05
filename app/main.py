@@ -26,11 +26,15 @@ logger = logging.getLogger("ideatravel")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.mcp.server import mcp as mcp_server  # noqa: E402
+
     logger.info("Starting Tengo Un Viaje API...")
     async with engine.begin() as conn:
         await conn.execute(text("SELECT 1"))
     logger.info("Database connection verified")
-    yield
+    async with mcp_server.session_manager.run():
+        logger.info("MCP session manager started")
+        yield
     await engine.dispose()
     logger.info("Shutting down...")
 
@@ -82,7 +86,7 @@ from app.mcp.server import mcp as mcp_server  # noqa: E402
 
 
 class _MCPAuthMiddleware:
-    """Raw ASGI middleware for MCP auth. Avoids BaseHTTPMiddleware which buffers SSE streams."""
+    """Raw ASGI middleware for MCP auth. Avoids BaseHTTPMiddleware which buffers streams."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -98,7 +102,7 @@ class _MCPAuthMiddleware:
         await self.app(scope, receive, send)
 
 
-mcp_app = mcp_server.sse_app()
+mcp_app = mcp_server.streamable_http_app()
 mcp_app.add_middleware(_MCPAuthMiddleware)
 app.mount("/mcp", mcp_app)
 
