@@ -20,6 +20,14 @@ mcp = FastMCP(
             "*.railway.internal",
             "*.railway.internal:*",
         ],
-        allowed_origins=["https://api.tengounviaje.com"],
+        allowed_origins=[
+            "https://api.tengounviaje.com",
+            "http://localhost",
+            "http://localhost:*",
+            "https://localhost",
+            "https://localhost:*",
+            "http://127.0.0.1",
+            "http://127.0.0.1:*",
+        ],
     ),
 )
