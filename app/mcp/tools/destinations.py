@@ -57,6 +57,26 @@ async def create_experiences(
 
 
 @mcp.tool()
+async def delete_accommodations(
+    accommodation_ids: Annotated[list[str], Field(description="List of accommodation UUIDs to delete")],
+) -> str:
+    """Delete accommodations by their IDs."""
+    async with get_mcp_session() as db:
+        deleted = await destination_write_service.delete_accommodations(db, accommodation_ids)
+        return json.dumps({"deleted": deleted})
+
+
+@mcp.tool()
+async def delete_experiences(
+    experience_ids: Annotated[list[str], Field(description="List of experience UUIDs to delete")],
+) -> str:
+    """Delete experiences by their IDs."""
+    async with get_mcp_session() as db:
+        deleted = await destination_write_service.delete_experiences(db, experience_ids)
+        return json.dumps({"deleted": deleted})
+
+
+@mcp.tool()
 async def enrich_route_steps(
     pack_slug: Annotated[str, Field(description="Pack slug to add route steps to")],
     steps: Annotated[list[dict], Field(description=(

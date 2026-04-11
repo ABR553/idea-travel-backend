@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.models.accommodation import Accommodation, AccommodationTranslation
@@ -87,3 +88,33 @@ async def create_experiences(
         created.append({"id": str(exp_id), "title": es_title, "provider": exp_data["provider"]})
     await db.flush()
     return created
+
+
+async def delete_accommodations(
+    db: AsyncSession,
+    accommodation_ids: list[str],
+) -> int:
+    """Delete accommodations by their IDs. Returns count of deleted."""
+    deleted = 0
+    for aid in accommodation_ids:
+        acc = await db.get(Accommodation, uuid.UUID(aid))
+        if acc:
+            await db.delete(acc)
+            deleted += 1
+    await db.flush()
+    return deleted
+
+
+async def delete_experiences(
+    db: AsyncSession,
+    experience_ids: list[str],
+) -> int:
+    """Delete experiences by their IDs. Returns count of deleted."""
+    deleted = 0
+    for eid in experience_ids:
+        exp = await db.get(Experience, uuid.UUID(eid))
+        if exp:
+            await db.delete(exp)
+            deleted += 1
+    await db.flush()
+    return deleted
