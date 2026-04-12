@@ -4,6 +4,11 @@ from app.domain.models.accommodation import Accommodation, AccommodationTranslat
 from app.domain.models.blog_post import BlogPost, BlogPostTranslation
 from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
+from app.domain.models.instagram_post import (
+    InstagramPost,
+    InstagramPostSlide,
+    InstagramPostTranslation,
+)
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
 from app.domain.models.project import Project
@@ -181,6 +186,59 @@ class BlogPostTranslationAdmin(ModelView, model=BlogPostTranslation):
     page_size = 25
 
 
+class InstagramPostAdmin(ModelView, model=InstagramPost):
+    name = "Instagram Post"
+    name_plural = "Instagram Posts"
+    icon = "fa-brands fa-instagram"
+    column_list = [
+        InstagramPost.id,
+        InstagramPost.topic,
+        InstagramPost.language,
+        InstagramPost.status,
+        InstagramPost.format,
+        InstagramPost.slide_count,
+        InstagramPost.created_at,
+    ]
+    column_searchable_list = [InstagramPost.topic]
+    column_sortable_list = [
+        InstagramPost.status,
+        InstagramPost.created_at,
+        InstagramPost.published_at,
+    ]
+    column_filters = [InstagramPost.status, InstagramPost.language, InstagramPost.format]
+    column_default_sort = ("created_at", True)
+    page_size = 25
+
+
+class InstagramPostTranslationAdmin(ModelView, model=InstagramPostTranslation):
+    name = "Instagram Translation"
+    name_plural = "Instagram Translations"
+    icon = "fa-solid fa-language"
+    column_list = [
+        InstagramPostTranslation.id,
+        InstagramPostTranslation.instagram_post_id,
+        InstagramPostTranslation.locale,
+        InstagramPostTranslation.hook,
+    ]
+    column_searchable_list = [InstagramPostTranslation.hook, InstagramPostTranslation.caption]
+    page_size = 25
+
+
+class InstagramPostSlideAdmin(ModelView, model=InstagramPostSlide):
+    name = "Instagram Slide"
+    name_plural = "Instagram Slides"
+    icon = "fa-regular fa-image"
+    column_list = [
+        InstagramPostSlide.id,
+        InstagramPostSlide.instagram_post_id,
+        InstagramPostSlide.order,
+        InstagramPostSlide.image_source,
+        InstagramPostSlide.image_url,
+    ]
+    column_sortable_list = [InstagramPostSlide.order]
+    page_size = 25
+
+
 ALL_VIEWS = [
     PackAdmin,
     PackTranslationAdmin,
@@ -198,4 +256,7 @@ ALL_VIEWS = [
     BlogPostAdmin,
     BlogPostTranslationAdmin,
     LinkClickAdmin,
+    InstagramPostAdmin,
+    InstagramPostTranslationAdmin,
+    InstagramPostSlideAdmin,
 ]
