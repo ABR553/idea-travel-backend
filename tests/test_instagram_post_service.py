@@ -138,3 +138,22 @@ async def test_update_missing_returns_none(db_session):
     from uuid import uuid4
     result = await svc.update_post(db_session, uuid4(), InstagramPostUpdate(topic="x"))
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_delete_draft_succeeds(db_session):
+    created = await svc.create_post(db_session, _minimal_payload())
+    deleted = await svc.delete_post(db_session, created.id)
+    assert deleted is True
+    assert await svc.get_post(db_session, created.id) is None
+
+
+@pytest.mark.asyncio
+async def test_delete_published_raises(db_session):
+    created = await svc.create_post(db_session, _minimal_payload())
+    # Force status directly to simulate a published post.
+    created.status = InstagramPostStatus.PUBLISHED
+    await db_session.commit()
+
+    with pytest.raises(svc.InvalidStatusTransition):
+        await svc.delete_post(db_session, created.id)

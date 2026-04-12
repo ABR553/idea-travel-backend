@@ -16,6 +16,10 @@ from app.domain.models.instagram_post import (
 from app.schemas.instagram_post import InstagramPostCreate, InstagramPostUpdate
 
 
+class InvalidStatusTransition(Exception):
+    """Raised when a state transition is not allowed by the service rules."""
+
+
 async def _load_with_children(db: AsyncSession, post_id: uuid.UUID) -> InstagramPost | None:
     result = await db.execute(
         select(InstagramPost)
@@ -177,3 +181,19 @@ async def update_post(
     await db.commit()
     await db.refresh(post, ["translations", "slides"])
     return post
+
+
+_DELETABLE_STATUSES = {InstagramPostStatus.DRAFT, InstagramPostStatus.REJECTED}
+
+
+async def delete_post(db: AsyncSession, post_id: uuid.UUID) -> bool:
+    post = await _load_with_children(db, post_id)
+    if post is None:
+        return False
+    if post.status not in _DELETABLE_STATUSES:
+        raise InvalidStatusTransition(
+            f"Cannot delete a post in status {post.status.value}"
+        )
+    await db.delete(post)
+    await db.commit()
+    return True
