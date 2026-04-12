@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Iterable
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -77,3 +77,38 @@ async def create_post(db: AsyncSession, data: InstagramPostCreate) -> InstagramP
 
 async def get_post(db: AsyncSession, post_id: uuid.UUID) -> InstagramPost | None:
     return await _load_with_children(db, post_id)
+
+
+async def list_posts(
+    db: AsyncSession,
+    status=None,
+    language=None,
+    format=None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[InstagramPost], int]:
+    base = select(InstagramPost)
+    if status is not None:
+        base = base.where(InstagramPost.status == status)
+    if language is not None:
+        base = base.where(InstagramPost.language == language)
+    if format is not None:
+        base = base.where(InstagramPost.format == format)
+
+    count_result = await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )
+    total = count_result.scalar() or 0
+
+    query = (
+        base.order_by(InstagramPost.created_at.desc())
+        .options(
+            selectinload(InstagramPost.translations),
+            selectinload(InstagramPost.slides),
+        )
+        .offset(offset)
+        .limit(limit)
+    )
+    result = await db.execute(query)
+    items = list(result.scalars().unique().all())
+    return items, total

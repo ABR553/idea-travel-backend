@@ -76,3 +76,19 @@ async def test_get_post_missing_returns_none(db_session):
     from uuid import uuid4
     result = await svc.get_post(db_session, uuid4())
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_list_posts_paginates_and_filters_by_status(db_session):
+    for i in range(3):
+        await svc.create_post(db_session, _minimal_payload(topic=f"Topic {i}"))
+
+    items, total = await svc.list_posts(db_session, limit=2, offset=0)
+    assert total == 3
+    assert len(items) == 2
+
+    items_filtered, total_filtered = await svc.list_posts(
+        db_session, status=InstagramPostStatus.PUBLISHED
+    )
+    assert total_filtered == 0
+    assert items_filtered == []
