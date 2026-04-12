@@ -41,6 +41,7 @@ class BlogPostListResponse(BaseModel):
     category: str
     published_at: str | None = Field(alias="publishedAt")
     related_pack_slug: str | None = Field(default=None, alias="relatedPackSlug")
+    available_locales: list[str] = Field(default_factory=list, alias="availableLocales")
 
     model_config = {"populate_by_name": True}
 
@@ -55,5 +56,6 @@ class BlogPostResponse(BaseModel):
     category: str
     published_at: str | None = Field(alias="publishedAt")
     related_pack_slug: str | None = Field(default=None, alias="relatedPackSlug")
+    available_locales: list[str] = Field(default_factory=list, alias="availableLocales")
 
     model_config = {"populate_by_name": True}

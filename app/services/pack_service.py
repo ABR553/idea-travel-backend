@@ -155,6 +155,10 @@ def _build_price_range(pack: Pack) -> PriceRange:
     )
 
 
+def _pack_available_locales(pack: Pack) -> list[str]:
+    return sorted({t.locale for t in pack.translations})
+
+
 def _pack_to_list_response(pack: Pack, locale: str) -> PackListResponse:
     pt = resolve_translation(pack.translations, locale)
     destinations = [
@@ -171,6 +175,7 @@ def _pack_to_list_response(pack: Pack, locale: str) -> PackListResponse:
         duration_days=pack.duration_days,
         price=_build_price_range(pack),
         featured=pack.featured,
+        available_locales=_pack_available_locales(pack),
     )
 
 
@@ -209,6 +214,7 @@ async def _pack_to_full_response(
         duration_days=pack.duration_days,
         price=_build_price_range(pack),
         featured=pack.featured,
+        available_locales=_pack_available_locales(pack),
     )
 
 

@@ -21,6 +21,10 @@ def _format_date(dt) -> str | None:  # noqa: ANN001
     return dt.strftime("%Y-%m-%d")
 
 
+def _available_locales(post: BlogPost) -> list[str]:
+    return sorted({t.locale for t in post.translations})
+
+
 def _post_to_list_response(post: BlogPost, locale: str) -> BlogPostListResponse:
     bt = resolve_translation(post.translations, locale)
     pack_slug = None
@@ -35,6 +39,7 @@ def _post_to_list_response(post: BlogPost, locale: str) -> BlogPostListResponse:
         category=post.category,
         publishedAt=_format_date(post.published_at),
         relatedPackSlug=pack_slug,
+        availableLocales=_available_locales(post),
     )
 
 
@@ -53,6 +58,7 @@ def _post_to_response(post: BlogPost, locale: str) -> BlogPostResponse:
         category=post.category,
         publishedAt=_format_date(post.published_at),
         relatedPackSlug=pack_slug,
+        availableLocales=_available_locales(post),
     )
 
 

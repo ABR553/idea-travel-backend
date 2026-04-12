@@ -18,6 +18,7 @@ class PackResponse(BaseModel):
     durationDays: int = Field(alias="duration_days")
     price: PriceRange
     featured: bool
+    availableLocales: list[str] = Field(default_factory=list, alias="available_locales")
 
     model_config = {"populate_by_name": True}
 
@@ -33,5 +34,6 @@ class PackListResponse(BaseModel):
     durationDays: int = Field(alias="duration_days")
     price: PriceRange
     featured: bool
+    availableLocales: list[str] = Field(default_factory=list, alias="available_locales")
 
     model_config = {"populate_by_name": True}
