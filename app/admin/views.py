@@ -1,4 +1,5 @@
 from sqladmin import ModelView
+from sqladmin.filters import StaticValuesFilter
 
 from app.domain.models.accommodation import Accommodation, AccommodationTranslation
 from app.domain.models.blog_post import BlogPost, BlogPostTranslation
@@ -205,7 +206,27 @@ class InstagramPostAdmin(ModelView, model=InstagramPost):
         InstagramPost.created_at,
         InstagramPost.published_at,
     ]
-    column_filters = [InstagramPost.status, InstagramPost.language, InstagramPost.format]
+    column_filters = [
+        StaticValuesFilter(
+            InstagramPost.status,
+            [
+                ("draft", "Draft"),
+                ("pending_review", "Pending review"),
+                ("approved", "Approved"),
+                ("scheduled", "Scheduled"),
+                ("published", "Published"),
+                ("rejected", "Rejected"),
+            ],
+        ),
+        StaticValuesFilter(
+            InstagramPost.language,
+            [("es", "ES"), ("en", "EN"), ("bilingual", "Bilingual")],
+        ),
+        StaticValuesFilter(
+            InstagramPost.format,
+            [("single_image", "Single image"), ("carousel", "Carousel")],
+        ),
+    ]
     column_default_sort = ("created_at", True)
     page_size = 25
 

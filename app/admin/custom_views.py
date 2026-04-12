@@ -13,7 +13,7 @@ class BlogEditorView(BaseView):
     name = "Blog Editor"
     icon = "fa-solid fa-pen-to-square"
 
-    @expose("/blog-editor", methods=["GET"])
+    @expose("/blog-editor", methods=["GET"], identity="blog_editor")
     async def page(self, request):
         html = (TEMPLATES_DIR / "blog_editor.html").read_text(encoding="utf-8")
         return HTMLResponse(html)
@@ -23,7 +23,7 @@ class AIGeneratorView(BaseView):
     name = "AI Generator"
     icon = "fa-solid fa-wand-magic-sparkles"
 
-    @expose("/ai-generator", methods=["GET"])
+    @expose("/ai-generator", methods=["GET"], identity="ai_generator")
     async def page(self, request):
         html = (TEMPLATES_DIR / "ai_generator.html").read_text(encoding="utf-8")
         return HTMLResponse(html)
@@ -39,7 +39,7 @@ class InstagramFeedView(BaseView):
     name = "Instagram Feed"
     icon = "fa-brands fa-instagram"
 
-    @expose("/instagram-feed", methods=["GET"])
+    @expose("/instagram-feed", methods=["GET"], identity="instagram_feed")
     async def page(self, request):
         async with async_session_factory() as db:
             posts, total = await instagram_post_service.list_posts(db, limit=60, offset=0)
@@ -91,7 +91,7 @@ class InstagramPreviewView(BaseView):
     name = "Instagram Preview"
     icon = "fa-solid fa-mobile-screen"
 
-    @expose("/instagram-preview", methods=["GET"])
+    @expose("/instagram-preview", methods=["GET"], identity="instagram_preview")
     async def page(self, request):
         post_id = request.query_params.get("id")
         if not post_id:
