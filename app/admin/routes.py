@@ -255,3 +255,217 @@ async def _save_to_db(db: AsyncSession, data: AIGenerateResponse) -> None:
         ],
     )
     await blog_service.create_post(db, blog_data)
+
+
+# -- Instagram Posts -----------------------------------------------------------
+
+from uuid import UUID  # noqa: E402
+
+from app.schemas.instagram_post import (  # noqa: E402
+    InstagramPostCreate,
+    InstagramPostListItem,
+    InstagramPostListResponse,
+    InstagramPostPublishResponse,
+    InstagramPostResponse,
+    InstagramPostStatusChange,
+    InstagramPostUpdate,
+)
+from app.services import instagram_post_service  # noqa: E402
+
+
+def _post_to_response(post) -> InstagramPostResponse:
+    return InstagramPostResponse.model_validate(
+        {
+            "id": str(post.id),
+            "topic": post.topic,
+            "language": post.language,
+            "format": post.format,
+            "slideCount": post.slide_count,
+            "hashtags": post.hashtags,
+            "mentions": post.mentions,
+            "locationName": post.location_name,
+            "locationLat": post.location_lat,
+            "locationLng": post.location_lng,
+            "targetAudience": post.target_audience,
+            "postAngle": post.post_angle,
+            "bestPublishTime": post.best_publish_time,
+            "rationale": post.rationale,
+            "sourceMcpRefs": post.source_mcp_refs,
+            "status": post.status,
+            "instagramPostId": post.instagram_post_id,
+            "publishAttempts": post.publish_attempts,
+            "approvedAt": post.approved_at,
+            "publishedAt": post.published_at,
+            "createdAt": post.created_at,
+            "updatedAt": post.updated_at,
+            "translations": [
+                {
+                    "locale": t.locale,
+                    "hook": t.hook,
+                    "caption": t.caption,
+                    "cta": t.cta,
+                    "firstComment": t.first_comment,
+                    "engagementHook": t.engagement_hook,
+                }
+                for t in post.translations
+            ],
+            "slides": [
+                {
+                    "order": s.order,
+                    "imageUrl": s.image_url,
+                    "imagePrompt": s.image_prompt,
+                    "imageSource": s.image_source,
+                    "altText": s.alt_text,
+                    "overlayText": s.overlay_text,
+                }
+                for s in sorted(post.slides, key=lambda x: x.order)
+            ],
+        }
+    )
+
+
+def _post_to_list_item(post) -> InstagramPostListItem:
+    first_url = None
+    if post.slides:
+        first_url = sorted(post.slides, key=lambda s: s.order)[0].image_url
+    return InstagramPostListItem(
+        id=str(post.id),
+        topic=post.topic,
+        status=post.status,
+        language=post.language,
+        format=post.format,
+        slideCount=post.slide_count,
+        firstSlideUrl=first_url,
+        createdAt=post.created_at,
+        updatedAt=post.updated_at,
+    )
+
+
+@router.get("/instagram-posts", response_model=InstagramPostListResponse)
+async def ig_list(
+    request: Request,
+    status: str | None = None,
+    language: str | None = None,
+    format: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostListResponse:
+    _require_auth(request)
+    items, total = await instagram_post_service.list_posts(
+        db,
+        status=status,
+        language=language,
+        format=format,
+        limit=limit,
+        offset=offset,
+    )
+    return InstagramPostListResponse(
+        items=[_post_to_list_item(p) for p in items],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/instagram-posts/{post_id}", response_model=InstagramPostResponse)
+async def ig_get(
+    post_id: UUID,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostResponse:
+    _require_auth(request)
+    post = await instagram_post_service.get_post(db, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Instagram post not found")
+    return _post_to_response(post)
+
+
+@router.post(
+    "/instagram-posts",
+    response_model=InstagramPostResponse,
+    status_code=201,
+)
+async def ig_create(
+    payload: InstagramPostCreate,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostResponse:
+    _require_auth(request)
+    post = await instagram_post_service.create_post(db, payload)
+    post = await instagram_post_service.get_post(db, post.id)
+    return _post_to_response(post)
+
+
+@router.patch("/instagram-posts/{post_id}", response_model=InstagramPostResponse)
+async def ig_update(
+    post_id: UUID,
+    payload: InstagramPostUpdate,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostResponse:
+    _require_auth(request)
+    post = await instagram_post_service.update_post(db, post_id, payload)
+    if not post:
+        raise HTTPException(status_code=404, detail="Instagram post not found")
+    post = await instagram_post_service.get_post(db, post.id)
+    return _post_to_response(post)
+
+
+@router.delete("/instagram-posts/{post_id}", status_code=204)
+async def ig_delete(
+    post_id: UUID,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> None:
+    _require_auth(request)
+    try:
+        deleted = await instagram_post_service.delete_post(db, post_id)
+    except instagram_post_service.InvalidStatusTransition as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Instagram post not found")
+
+
+@router.post("/instagram-posts/{post_id}/status", response_model=InstagramPostResponse)
+async def ig_status(
+    post_id: UUID,
+    payload: InstagramPostStatusChange,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostResponse:
+    _require_auth(request)
+    try:
+        post = await instagram_post_service.transition_status(db, post_id, payload.status)
+    except instagram_post_service.InvalidStatusTransition as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    if not post:
+        raise HTTPException(status_code=404, detail="Instagram post not found")
+    post = await instagram_post_service.get_post(db, post.id)
+    return _post_to_response(post)
+
+
+@router.post(
+    "/instagram-posts/{post_id}/publish",
+    response_model=InstagramPostPublishResponse,
+)
+async def ig_publish(
+    post_id: UUID,
+    request: Request,
+    db: AsyncSession = Depends(_get_db),
+) -> InstagramPostPublishResponse:
+    _require_auth(request)
+    try:
+        post = await instagram_post_service.publish_post(
+            db, post_id, actor=str(request.session.get("username", "admin"))
+        )
+    except instagram_post_service.InvalidStatusTransition as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    if not post:
+        raise HTTPException(status_code=404, detail="Instagram post not found")
+    post = await instagram_post_service.get_post(db, post.id)
+    return InstagramPostPublishResponse(
+        id=str(post.id),
+        status=post.status,
+        publishAttempts=post.publish_attempts,
+    )
