@@ -8,3 +8,4 @@ import app.mcp.tools.packs  # noqa: F401
 import app.mcp.tools.projects  # noqa: F401
 import app.mcp.tools.destinations  # noqa: F401
 import app.mcp.tools.blogs  # noqa: F401
+from app.mcp.tools import instagram  # noqa: F401
