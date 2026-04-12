@@ -4,10 +4,12 @@ from mcp.server.transport_security import TransportSecuritySettings
 mcp = FastMCP(
     "idea-travel",
     instructions=(
-        "MCP server for Idea Travel. Manage travel products (Amazon) and travel packs "
-        "with destinations, accommodations, experiences, and route steps. "
+        "MCP server for Idea Travel. Manage travel products (Amazon), travel packs "
+        "with destinations, accommodations, experiences, and route steps, and blog posts. "
         "All content supports bilingual translations (es/en). "
-        "Use list_projects first to get the project slug before upserting products."
+        "Use list_projects first to get the project slug before upserting products. "
+        "For blog posts use create_blog_post / update_blog_post / delete_blog_post / "
+        "list_blog_posts / get_blog_post; always provide both es and en translations."
     ),
     stateless_http=True,
     streamable_http_path="/",
