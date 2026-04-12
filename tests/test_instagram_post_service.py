@@ -13,6 +13,7 @@ from app.schemas.instagram_post import (
     InstagramPostCreate,
     InstagramPostSlideIn,
     InstagramPostTranslationIn,
+    InstagramPostUpdate,
 )
 from app.services import instagram_post_service as svc
 
@@ -92,3 +93,48 @@ async def test_list_posts_paginates_and_filters_by_status(db_session):
     )
     assert total_filtered == 0
     assert items_filtered == []
+
+
+@pytest.mark.asyncio
+async def test_update_replaces_translations_and_slides(db_session):
+    created = await svc.create_post(db_session, _minimal_payload())
+
+    update = InstagramPostUpdate(
+        topic="Updated",
+        slide_count=2,
+        format=InstagramPostFormat.CAROUSEL,
+        translations=[
+            InstagramPostTranslationIn(
+                locale="es", hook="Nuevo hook", caption="Nuevo caption"
+            )
+        ],
+        slides=[
+            InstagramPostSlideIn(
+                order=0,
+                image_url="https://example.com/new-a.jpg",
+                image_source=InstagramImageSource.STOCK,
+            ),
+            InstagramPostSlideIn(
+                order=1,
+                image_url="https://example.com/new-b.jpg",
+                image_source=InstagramImageSource.STOCK,
+            ),
+        ],
+    )
+
+    updated = await svc.update_post(db_session, created.id, update)
+
+    assert updated is not None
+    assert updated.topic == "Updated"
+    assert updated.format == InstagramPostFormat.CAROUSEL
+    assert updated.slide_count == 2
+    assert len(updated.slides) == 2
+    assert len(updated.translations) == 1
+    assert updated.translations[0].hook == "Nuevo hook"
+
+
+@pytest.mark.asyncio
+async def test_update_missing_returns_none(db_session):
+    from uuid import uuid4
+    result = await svc.update_post(db_session, uuid4(), InstagramPostUpdate(topic="x"))
+    assert result is None

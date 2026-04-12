@@ -13,7 +13,7 @@ from app.domain.models.instagram_post import (
     InstagramPostSlide,
     InstagramPostTranslation,
 )
-from app.schemas.instagram_post import InstagramPostCreate
+from app.schemas.instagram_post import InstagramPostCreate, InstagramPostUpdate
 
 
 async def _load_with_children(db: AsyncSession, post_id: uuid.UUID) -> InstagramPost | None:
@@ -112,3 +112,68 @@ async def list_posts(
     result = await db.execute(query)
     items = list(result.scalars().unique().all())
     return items, total
+
+
+async def update_post(
+    db: AsyncSession, post_id: uuid.UUID, data: InstagramPostUpdate
+) -> InstagramPost | None:
+    post = await _load_with_children(db, post_id)
+    if post is None:
+        return None
+
+    scalar_fields = {
+        "topic",
+        "language",
+        "format",
+        "slide_count",
+        "hashtags",
+        "mentions",
+        "location_name",
+        "location_lat",
+        "location_lng",
+        "target_audience",
+        "post_angle",
+        "best_publish_time",
+        "rationale",
+        "source_mcp_refs",
+    }
+    for field in scalar_fields:
+        value = getattr(data, field)
+        if value is not None:
+            setattr(post, field, value)
+
+    if data.translations is not None:
+        for old in list(post.translations):
+            await db.delete(old)
+        await db.flush()
+        for t in data.translations:
+            post.translations.append(
+                InstagramPostTranslation(
+                    locale=t.locale,
+                    hook=t.hook,
+                    caption=t.caption,
+                    cta=t.cta,
+                    first_comment=t.first_comment,
+                    engagement_hook=t.engagement_hook,
+                )
+            )
+
+    if data.slides is not None:
+        for old in list(post.slides):
+            await db.delete(old)
+        await db.flush()
+        for s in data.slides:
+            post.slides.append(
+                InstagramPostSlide(
+                    order=s.order,
+                    image_url=s.image_url,
+                    image_prompt=s.image_prompt,
+                    image_source=s.image_source,
+                    alt_text=s.alt_text,
+                    overlay_text=s.overlay_text,
+                )
+            )
+
+    await db.commit()
+    await db.refresh(post, ["translations", "slides"])
+    return post
