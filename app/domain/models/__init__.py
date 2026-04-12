@@ -3,6 +3,11 @@ from app.domain.models.base import BaseModel
 from app.domain.models.blog_post import BlogPost, BlogPostTranslation
 from app.domain.models.destination import Destination, DestinationTranslation
 from app.domain.models.experience import Experience, ExperienceTranslation
+from app.domain.models.instagram_post import (
+    InstagramPost,
+    InstagramPostSlide,
+    InstagramPostTranslation,
+)
 from app.domain.models.link_click import LinkClick
 from app.domain.models.pack import Pack, PackTranslation
 from app.domain.models.product import Product, ProductTranslation
@@ -24,6 +29,9 @@ __all__ = [
     "AccommodationTranslation",
     "Experience",
     "ExperienceTranslation",
+    "InstagramPost",
+    "InstagramPostSlide",
+    "InstagramPostTranslation",
     "Product",
     "ProductTranslation",
     "Project",
