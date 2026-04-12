@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
@@ -195,3 +195,25 @@ async def test_transition_to_approved_requires_matching_translations(db_session)
     )
     with pytest.raises(svc.InvalidStatusTransition):
         await svc.transition_status(db_session, created.id, InstagramPostStatus.APPROVED)
+
+
+@pytest.mark.asyncio
+async def test_publish_moves_to_scheduled_when_future_time(db_session):
+    created = await svc.create_post(
+        db_session,
+        _minimal_payload(
+            best_publish_time=datetime.now(timezone.utc) + timedelta(hours=3)
+        ),
+    )
+    updated = await svc.publish_post(db_session, created.id, actor="tests")
+    assert updated.status == InstagramPostStatus.SCHEDULED
+    assert len(updated.publish_attempts) == 1
+    assert updated.publish_attempts[0]["result"] == "queued_for_phase2"
+
+
+@pytest.mark.asyncio
+async def test_publish_stays_approved_when_no_future_time(db_session):
+    created = await svc.create_post(db_session, _minimal_payload())
+    updated = await svc.publish_post(db_session, created.id, actor="tests")
+    assert updated.status == InstagramPostStatus.APPROVED
+    assert len(updated.publish_attempts) == 1

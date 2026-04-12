@@ -247,3 +247,38 @@ async def transition_status(
     await db.commit()
     await db.refresh(post, ["translations", "slides"])
     return post
+
+
+_PUBLISHABLE_TERMINAL = {InstagramPostStatus.PUBLISHED, InstagramPostStatus.REJECTED}
+
+
+async def publish_post(
+    db: AsyncSession, post_id: uuid.UUID, actor: str
+) -> InstagramPost | None:
+    post = await _load_with_children(db, post_id)
+    if post is None:
+        return None
+
+    if post.status in _PUBLISHABLE_TERMINAL:
+        raise InvalidStatusTransition(
+            f"Cannot publish a post in terminal status {post.status.value}"
+        )
+
+    _validate_for_approval(post)
+    if post.status != InstagramPostStatus.APPROVED and post.approved_at is None:
+        post.approved_at = datetime.now(timezone.utc)
+    post.status = InstagramPostStatus.APPROVED
+
+    attempt = {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "actor": actor,
+        "result": "queued_for_phase2",
+    }
+    post.publish_attempts = [*post.publish_attempts, attempt]
+
+    if post.best_publish_time is not None and post.best_publish_time > datetime.now(timezone.utc):
+        post.status = InstagramPostStatus.SCHEDULED
+
+    await db.commit()
+    await db.refresh(post, ["translations", "slides"])
+    return post
