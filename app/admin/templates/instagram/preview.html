@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Instagram Preview · Idea Travel Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/admin/statics/instagram.css" />
+  <style>
+    body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; }
+    .page { display: grid; grid-template-columns: 390px 1fr; gap: 32px; max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .mobile { background: white; border-radius: 12px; border: 1px solid #dbdbdb; overflow: hidden; }
+    .ig-header { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #efefef; }
+    .ig-header .avatar { width: 32px; height: 32px; background: linear-gradient(135deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5); border-radius: 50%; margin-right: 10px; }
+    .ig-header .user { font-weight: 600; font-size: 14px; }
+    .ig-header .loc { font-size: 11px; color: #555; }
+    .ig-image { position: relative; aspect-ratio: 1/1; background: #111; overflow: hidden; }
+    .ig-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ig-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.9); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; }
+    .ig-nav.prev { left: 8px; } .ig-nav.next { right: 8px; }
+    .ig-actions { display: flex; gap: 16px; padding: 12px; font-size: 22px; }
+    .ig-caption { padding: 0 12px 12px; font-size: 14px; line-height: 1.4; }
+    .ig-caption .user { font-weight: 600; }
+    .ig-caption .hashtags { color: #0075c8; }
+    .ig-comment { border-top: 1px solid #efefef; padding: 10px 12px; font-size: 13px; color: #262626; background: #fafafa; }
+    .admin-panel { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; font-size: 13px; color: #333; max-width: 420px; }
+    .admin-panel h2 { font-weight: 600; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.05em; }
+    .admin-panel dt { font-weight: 500; color: #111; }
+    .admin-panel dd { margin: 0 0 10px 0; color: #555; }
+    .badge-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e5e7eb; font-size: 11px; margin: 2px; }
+    .publish-btn { margin-top: 14px; width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #0095f6; color: white; font-weight: 600; cursor: pointer; }
+    .publish-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+    .topbar { padding: 10px 20px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; gap: 16px; align-items: center; }
+    .topbar a { color: #3b82f6; text-decoration: none; font-weight: 500; }
+    .lang-toggle { margin-left: auto; }
+    .lang-toggle button { border: 1px solid #d1d5db; background: white; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+    .lang-toggle button.active { background: #111; color: white; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: white; padding: 10px 16px; border-radius: 8px; opacity: 0; transition: opacity .2s; }
+    .toast.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/admin/instagram-feed">← Feed</a>
+    <a href="/admin">Admin</a>
+    <div class="lang-toggle" id="langToggle" style="display:none">
+      <button data-locale="es" class="active">ES</button>
+      <button data-locale="en">EN</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="mobile">
+      <div class="ig-header">
+        <div class="avatar"></div>
+        <div>
+          <div class="user">@tengounviaje</div>
+          <div class="loc" id="locName"></div>
+        </div>
+      </div>
+      <div class="ig-image" id="imageArea">
+        <img id="slideImage" src="" alt="" />
+        <div class="ig-overlay" id="overlayText"></div>
+        <div class="ig-nav prev" id="prevSlide">&#8249;</div>
+        <div class="ig-nav next" id="nextSlide">&#8250;</div>
+      </div>
+      <div class="ig-dots" id="dots"></div>
+      <div class="ig-actions">&#9829; &#128172; &#8599; &#9113;</div>
+      <div class="ig-caption">
+        <span class="user">@tengounviaje</span> <span id="captionText"></span>
+        <div class="hashtags" id="hashtagsText"></div>
+      </div>
+      <div class="ig-comment" id="firstComment"></div>
+    </div>
+
+    <div class="admin-panel">
+      <h2>Metadata interna</h2>
+      <dl>
+        <dt>Status</dt><dd id="statusField"></dd>
+        <dt>Target audience</dt><dd id="audienceField"></dd>
+        <dt>Post angle</dt><dd id="angleField"></dd>
+        <dt>Best publish time</dt><dd id="timeField"></dd>
+        <dt>Rationale</dt><dd id="rationaleField"></dd>
+        <dt>Source MCP refs</dt><dd id="refsField"></dd>
+        <dt>Publish attempts</dt><dd id="attemptsField"></dd>
+      </dl>
+      <button class="publish-btn" id="publishBtn">Enviar a Instagram</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const PAYLOAD = {{PAYLOAD_JSON}};
+    let currentLocale = "es";
+    let slideIdx = 0;
+
+    function currentTranslation() {
+      const t = PAYLOAD.translations.find(x => x.locale === currentLocale);
+      return t || PAYLOAD.translations[0] || { hook: "", caption: "", firstComment: "" };
+    }
+
+    function render() {
+      const t = currentTranslation();
+      document.getElementById("captionText").textContent = (t.hook ? t.hook + " — " : "") + t.caption;
+      document.getElementById("hashtagsText").textContent = PAYLOAD.hashtags.map(h => "#" + h).join(" ");
+      document.getElementById("firstComment").textContent = t.firstComment || "";
+      document.getElementById("locName").textContent = PAYLOAD.locationName || "";
+
+      const slide = PAYLOAD.slides[slideIdx] || { imageUrl: "", overlayText: "" };
+      document.getElementById("slideImage").src = slide.imageUrl;
+      document.getElementById("overlayText").textContent = slide.overlayText || "";
+
+      const dots = PAYLOAD.slides.map((_, i) =>
+        '<span class="ig-dot ' + (i === slideIdx ? "active" : "") + '"></span>'
+      ).join("");
+      document.getElementById("dots").innerHTML = dots;
+
+      document.getElementById("statusField").textContent = PAYLOAD.status;
+      document.getElementById("audienceField").textContent = PAYLOAD.targetAudience || "—";
+      document.getElementById("angleField").textContent = PAYLOAD.postAngle || "—";
+      document.getElementById("timeField").textContent = PAYLOAD.bestPublishTime || "—";
+      document.getElementById("rationaleField").textContent = PAYLOAD.rationale || "—";
+      document.getElementById("refsField").innerHTML = (PAYLOAD.sourceMcpRefs || [])
+        .map(r => '<span class="badge-chip">' + (r.kind || "?") + ":" + (r.id || "?") + '</span>')
+        .join("") || "—";
+      document.getElementById("attemptsField").textContent = PAYLOAD.publishAttempts.length + " attempts";
+    }
+
+    document.getElementById("prevSlide").onclick = () => {
+      if (slideIdx > 0) { slideIdx--; render(); }
+    };
+    document.getElementById("nextSlide").onclick = () => {
+      if (slideIdx < PAYLOAD.slides.length - 1) { slideIdx++; render(); }
+    };
+
+    if (PAYLOAD.language === "bilingual") {
+      const toggle = document.getElementById("langToggle");
+      toggle.style.display = "block";
+      toggle.querySelectorAll("button").forEach(btn => {
+        btn.onclick = () => {
+          currentLocale = btn.dataset.locale;
+          toggle.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+          render();
+        };
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("visible");
+      setTimeout(() => t.classList.remove("visible"), 2500);
+    }
+
+    document.getElementById("publishBtn").onclick = async () => {
+      if (PAYLOAD.status !== "approved" && !confirm("El post no está en 'approved'. ¿Enviar igualmente?")) return;
+      const resp = await fetch("/admin/api/instagram-posts/" + PAYLOAD.id + "/publish", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        showToast("Error: " + (err.detail || resp.statusText));
+        return;
+      }
+      const body = await resp.json();
+      showToast("OK — status: " + body.status);
+      setTimeout(() => location.reload(), 1200);
+    };
+
+    render();
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ from app.admin.custom_views import (
     AIGeneratorView,
     BlogEditorView,
     InstagramFeedView,
+    InstagramPreviewView,
 )
 from app.admin.views import ALL_VIEWS
 from app.database import engine
@@ -24,4 +25,5 @@ def setup_admin(app: FastAPI) -> Admin:
     admin.add_view(BlogEditorView)
     admin.add_view(AIGeneratorView)
     admin.add_view(InstagramFeedView)
+    admin.add_view(InstagramPreviewView)
     return admin

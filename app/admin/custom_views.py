@@ -1,6 +1,7 @@
 """Custom admin views for SQLAdmin sidebar integration."""
 
 from pathlib import Path
+from uuid import UUID
 
 from sqladmin import BaseView, expose
 from starlette.responses import HTMLResponse
@@ -84,3 +85,54 @@ class InstagramFeedView(BaseView):
             "{{TOTAL}}", str(total)
         )
         return HTMLResponse(html_body)
+
+
+class InstagramPreviewView(BaseView):
+    name = "Instagram Preview"
+    icon = "fa-solid fa-mobile-screen"
+
+    @expose("/instagram-preview", methods=["GET"])
+    async def page(self, request):
+        post_id = request.query_params.get("id")
+        if not post_id:
+            return HTMLResponse("<p>Missing ?id=&lt;uuid&gt;</p>", status_code=400)
+        async with async_session_factory() as db:
+            post = await instagram_post_service.get_post(db, UUID(post_id))
+        if post is None:
+            return HTMLResponse("<p>Post not found</p>", status_code=404)
+
+        import json as _json
+        payload = {
+            "id": str(post.id),
+            "topic": post.topic,
+            "status": post.status.value if hasattr(post.status, "value") else post.status,
+            "language": post.language.value if hasattr(post.language, "value") else post.language,
+            "locationName": post.location_name,
+            "hashtags": post.hashtags,
+            "translations": [
+                {
+                    "locale": t.locale,
+                    "hook": t.hook,
+                    "caption": t.caption,
+                    "firstComment": t.first_comment,
+                    "engagementHook": t.engagement_hook,
+                }
+                for t in post.translations
+            ],
+            "slides": [
+                {
+                    "order": s.order,
+                    "imageUrl": s.image_url,
+                    "overlayText": s.overlay_text,
+                }
+                for s in sorted(post.slides, key=lambda x: x.order)
+            ],
+            "targetAudience": post.target_audience,
+            "postAngle": post.post_angle.value if post.post_angle else None,
+            "bestPublishTime": post.best_publish_time.isoformat() if post.best_publish_time else None,
+            "rationale": post.rationale,
+            "sourceMcpRefs": post.source_mcp_refs,
+            "publishAttempts": post.publish_attempts,
+        }
+        template = (INSTAGRAM_TEMPLATES / "preview.html").read_text(encoding="utf-8")
+        return HTMLResponse(template.replace("{{PAYLOAD_JSON}}", _json.dumps(payload)))
