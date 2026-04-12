@@ -1,0 +1,5 @@
+/* Shared dots/overlay styles used by the detail template */
+.ig-dots { display: flex; justify-content: center; gap: 6px; padding: 8px 0; }
+.ig-dot { width: 6px; height: 6px; border-radius: 50%; background: #c7c7c7; }
+.ig-dot.active { background: #0095f6; }
+.ig-overlay { position: absolute; bottom: 16px; left: 16px; right: 16px; color: white; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.6); font-size: 18px; }

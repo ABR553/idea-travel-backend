@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Instagram Feed · Idea Travel Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .topbar { padding: 12px 24px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; gap: 16px; align-items: center; }
+    .topbar a { color: #3b82f6; text-decoration: none; font-weight: 500; }
+    .grid { max-width: 960px; margin: 24px auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .card { position: relative; aspect-ratio: 1/1; background: #e5e7eb; overflow: hidden; text-decoration: none; color: white; }
+    .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .badge { position: absolute; top: 6px; left: 6px; color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .carousel { position: absolute; top: 6px; right: 6px; color: white; font-size: 18px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+    .topic { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 8px; background: linear-gradient(to top, rgba(0,0,0,.7), transparent); color: white; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/admin">← Admin</a>
+    <h1 class="text-lg font-semibold">Instagram Feed</h1>
+    <span class="text-sm text-gray-500">{{TOTAL}} posts</span>
+  </div>
+  <div class="grid">
+    {{CARDS}}
+  </div>
+</body>
+</html>
