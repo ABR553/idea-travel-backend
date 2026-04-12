@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import uuid
 from typing import Iterable
 
@@ -7,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.domain.models.enums import InstagramPostStatus
+from app.domain.models.enums import InstagramPostLanguage, InstagramPostStatus
 from app.domain.models.instagram_post import (
     InstagramPost,
     InstagramPostSlide,
@@ -197,3 +198,52 @@ async def delete_post(db: AsyncSession, post_id: uuid.UUID) -> bool:
     await db.delete(post)
     await db.commit()
     return True
+
+
+def _required_locales(language: InstagramPostLanguage) -> set[str]:
+    if language == InstagramPostLanguage.ES:
+        return {"es"}
+    if language == InstagramPostLanguage.EN:
+        return {"en"}
+    return {"es", "en"}
+
+
+def _validate_for_approval(post: InstagramPost) -> None:
+    if not (15 <= len(post.hashtags) <= 30):
+        raise InvalidStatusTransition(
+            f"Approved posts need 15-30 hashtags, got {len(post.hashtags)}"
+        )
+    if post.slide_count != len(post.slides):
+        raise InvalidStatusTransition(
+            f"slide_count={post.slide_count} but {len(post.slides)} slides persisted"
+        )
+    required = _required_locales(post.language)
+    present = {t.locale for t in post.translations}
+    missing = required - present
+    if missing:
+        raise InvalidStatusTransition(
+            f"Missing required translations for locales: {sorted(missing)}"
+        )
+
+
+async def transition_status(
+    db: AsyncSession,
+    post_id: uuid.UUID,
+    new_status: InstagramPostStatus,
+) -> InstagramPost | None:
+    post = await _load_with_children(db, post_id)
+    if post is None:
+        return None
+
+    if new_status == InstagramPostStatus.APPROVED:
+        _validate_for_approval(post)
+        if post.approved_at is None:
+            post.approved_at = datetime.now(timezone.utc)
+    if new_status == InstagramPostStatus.PUBLISHED:
+        if post.published_at is None:
+            post.published_at = datetime.now(timezone.utc)
+
+    post.status = new_status
+    await db.commit()
+    await db.refresh(post, ["translations", "slides"])
+    return post

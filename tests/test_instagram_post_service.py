@@ -157,3 +157,41 @@ async def test_delete_published_raises(db_session):
 
     with pytest.raises(svc.InvalidStatusTransition):
         await svc.delete_post(db_session, created.id)
+
+
+@pytest.mark.asyncio
+async def test_transition_to_approved_sets_approved_at(db_session):
+    created = await svc.create_post(db_session, _minimal_payload())
+    updated = await svc.transition_status(db_session, created.id, InstagramPostStatus.APPROVED)
+    assert updated.status == InstagramPostStatus.APPROVED
+    assert updated.approved_at is not None
+
+
+@pytest.mark.asyncio
+async def test_transition_to_approved_requires_15_to_30_hashtags(db_session):
+    # 14 hashtags — not enough
+    created = await svc.create_post(
+        db_session,
+        _minimal_payload(hashtags=[f"t{i}" for i in range(14)]),
+    )
+    with pytest.raises(svc.InvalidStatusTransition):
+        await svc.transition_status(db_session, created.id, InstagramPostStatus.APPROVED)
+
+    # 31 hashtags — too many
+    created2 = await svc.create_post(
+        db_session,
+        _minimal_payload(hashtags=[f"t{i}" for i in range(31)]),
+    )
+    with pytest.raises(svc.InvalidStatusTransition):
+        await svc.transition_status(db_session, created2.id, InstagramPostStatus.APPROVED)
+
+
+@pytest.mark.asyncio
+async def test_transition_to_approved_requires_matching_translations(db_session):
+    # bilingual post with only es translation — should fail
+    created = await svc.create_post(
+        db_session,
+        _minimal_payload(language=InstagramPostLanguage.BILINGUAL),
+    )
+    with pytest.raises(svc.InvalidStatusTransition):
+        await svc.transition_status(db_session, created.id, InstagramPostStatus.APPROVED)
