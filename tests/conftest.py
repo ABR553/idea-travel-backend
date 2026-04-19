@@ -131,6 +131,7 @@ async def seeded_db(db_session):
         id=prod_id, slug="test-product", category="electronics", price=99.99,
         currency="EUR", affiliate_url="https://example.com/prod",
         image="https://example.com/prod.jpg", rating=4.6,
+        external_id="ASIN123TEST",
         translations=[
             ProductTranslation(id=_id(), product_id=prod_id, locale="es", name="Producto Test", description="Desc producto"),
             ProductTranslation(id=_id(), product_id=prod_id, locale="en", name="Test Product", description="Product desc"),

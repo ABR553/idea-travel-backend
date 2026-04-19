@@ -64,3 +64,20 @@ async def test_product_categories(client):
     assert "luggage" in categories
     assert "electronics" in categories
     assert len(categories) == 5
+
+
+@pytest.mark.asyncio
+async def test_product_response_has_no_link_field(client, seeded_db):
+    """The deprecated `link` field (interpolated from Project.link_template) must no longer be returned.
+    Product links must come from `affiliate_url` / `affiliateUrl` exclusively."""
+    list_response = await client.get("/api/v1/products")
+    assert list_response.status_code == 200
+    item = list_response.json()["data"][0]
+    assert "link" not in item, f"`link` field must be removed, got: {item.get('link')!r}"
+    assert item.get("affiliateUrl") == "https://example.com/prod"
+
+    detail_response = await client.get("/api/v1/products/test-product")
+    assert detail_response.status_code == 200
+    detail = detail_response.json()
+    assert "link" not in detail
+    assert detail.get("affiliateUrl") == "https://example.com/prod"
