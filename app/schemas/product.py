@@ -17,7 +17,6 @@ class ProductResponse(BaseModel):
     rating: float
     external_id: Optional[str] = None
     project_id: Optional[str] = None
-    link: Optional[str] = None
 
     model_config = {"populate_by_name": True}
 

@@ -10,17 +10,6 @@ from app.schemas.product import ProductBulkUpsertRequest, ProductBulkUpsertRespo
 from app.services.utils import resolve_translation, to_float
 
 
-def _build_link(product: Product) -> str | None:
-    """Construye el link de afiliado del proyecto sustituyendo external_id y tag_id."""
-    if not product.project or not product.external_id:
-        return None
-    return (
-        product.project.link_template
-        .replace("{external_id}", product.external_id)
-        .replace("{tag_id}", product.project.tag_id)
-    )
-
-
 def _product_to_response(product: Product, locale: str) -> ProductResponse:
     pt = resolve_translation(product.translations, locale)
     return ProductResponse(
@@ -37,7 +26,6 @@ def _product_to_response(product: Product, locale: str) -> ProductResponse:
         rating=to_float(product.rating),
         external_id=product.external_id,
         project_id=str(product.project_id) if product.project_id else None,
-        link=_build_link(product),
     )
 
 
@@ -92,7 +80,7 @@ async def get_products(
         ordered = ordered.order_by(Product.created_at.desc())
 
     query = (
-        ordered.options(selectinload(Product.translations), selectinload(Product.images), selectinload(Product.project))
+        ordered.options(selectinload(Product.translations), selectinload(Product.images))
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
@@ -126,7 +114,6 @@ async def bulk_upsert_products(
         .options(
             selectinload(Product.translations),
             selectinload(Product.images),
-            selectinload(Product.project),
         )
     )
     existing_products: dict[str, Product] = {
@@ -202,7 +189,6 @@ async def bulk_upsert_products(
         .options(
             selectinload(Product.translations),
             selectinload(Product.images),
-            selectinload(Product.project),
         )
     )
     reloaded: dict[str, Product] = {
@@ -243,7 +229,7 @@ async def get_product_by_slug(
     query = (
         select(Product)
         .where(Product.slug == slug)
-        .options(selectinload(Product.translations), selectinload(Product.images), selectinload(Product.project))
+        .options(selectinload(Product.translations), selectinload(Product.images))
     )
     result = await db.execute(query)
     product = result.scalars().unique().first()
