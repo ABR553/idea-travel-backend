@@ -74,10 +74,10 @@ async def test_product_response_has_no_link_field(client, seeded_db):
     assert list_response.status_code == 200
     item = list_response.json()["data"][0]
     assert "link" not in item, f"`link` field must be removed, got: {item.get('link')!r}"
-    assert item.get("affiliateUrl") == "https://example.com/prod"
+    assert item.get("affiliate_url") == "https://example.com/prod"
 
     detail_response = await client.get("/api/v1/products/test-product")
     assert detail_response.status_code == 200
     detail = detail_response.json()
     assert "link" not in detail
-    assert detail.get("affiliateUrl") == "https://example.com/prod"
+    assert detail.get("affiliate_url") == "https://example.com/prod"
